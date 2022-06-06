@@ -1,7 +1,0 @@
-query GetSessions {
-  sessions(order: { title: ASC }) {
-    nodes {
-      title
-    }
-  }
-}
