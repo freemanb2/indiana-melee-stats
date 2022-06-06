@@ -1,0 +1,31 @@
+Top 50 Ranking
+    Rank - Tag - Character (with icon) - Elo value (maybe) - Region
+
+Rosters
+    Organized by region
+        Northeast
+        Indianapolis
+        Monroe
+        Northwest
+        Tippecanoe
+        Johnson
+        Delaware
+        St. Joseph
+        Vigo
+        Vanderburgh
+
+PREX
+    Group players into tiers, based on various criteria
+        criteria is defined on CoIN Sheet backend
+
+Head to Head tool
+    Show head to head stats for selected players
+    Strength/impact on elo of set outcome
+    Optional date range
+
+Player profiles
+    Region
+    Main character
+    Recent tournaments attended
+    PREX tier
+    H2H vs active roster (maybe)

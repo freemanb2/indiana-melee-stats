@@ -1,0 +1,23 @@
+is_global = true
+build_property.StrawberryShake_DefaultNamespace = Demo
+build_property.StrawberryShake_LogFile = 
+build_property.StrawberryShake_BuildDirectory = C:\Users\bkfreeman\.nuget\packages\strawberryshake.codegeneration.csharp.analyzers\12.9.0\build\..\analyzers\dotnet\cs
+build_property.StrawberryShake_PersistedQueryDirectory = 
+build_property.StrawberryShake_State = obj\\berry
+build_property.StrawberryShake_EmitGeneratedCode = 
+
+[C:/Users/bkfreeman/Desktop/SmashStats/Demo/GetSessions.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[C:/Users/bkfreeman/Desktop/SmashStats/Demo/schema.extensions.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[C:/Users/bkfreeman/Desktop/SmashStats/Demo/schema.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[C:/Users/bkfreeman/Desktop/SmashStats/Demo/.graphqlrc.json]
+build_metadata.AdditionalFiles.GraphQL = 
+build_metadata.AdditionalFiles.GraphQLConfig = true

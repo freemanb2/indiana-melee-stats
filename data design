@@ -1,0 +1,29 @@
+local value -> api value
+
+Tournament
+    tournament_id (guid) -> id
+    name -> name
+    region -> address? (could be online -> hasOnlineEvents)
+    date -> startAt
+    entrants [Players] -> participants
+    type (bracket/round robin/pools into bracket/etc) -> [events] -> rulesetId?
+    matches [Matches] -> [events] -> [SetConnections] -> sets
+
+Match -> Set
+    match_id (guid) -> id
+    date -> completedAt
+    tournament_name [Tournament.name]
+    set_count (w/l)
+    winner [Player] -> winnerId [Participant]
+    loser [Player] -> other participant
+    winner_character [Player.main_character]
+    loser_character [Player.main_character]
+    winner_elo [Player.elo]
+    loser_elo [Player.elo]
+
+Player
+    player_id (guid)
+    elo
+    tag
+    region
+    main_character
