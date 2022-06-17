@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using API_Scraper.Models;
 
 namespace API_Scraper.Controllers
 {
@@ -19,9 +19,18 @@ namespace API_Scraper.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var playerId = 1000;
-            var sets = await _consumer.GetAllSets(playerId);
-            return Ok(sets);
+            //var playerId = 1000;
+            //var sets = await _consumer.GetAllSets(playerId);
+            var results = await _consumer.GetRecentIndianaTournamentResults();
+
+            List<Tournament> tournamentList = new List<Tournament>();
+            
+            foreach(var result in results)
+            {
+                tournamentList.Add(new Tournament(result));
+            }
+
+            return Ok(results);
         }
 }
 }

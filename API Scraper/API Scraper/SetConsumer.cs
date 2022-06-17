@@ -2,8 +2,6 @@ using API_Scraper.API;
 using GraphQL;
 using GraphQL.Client.Abstractions;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace API_Scraper
@@ -94,12 +92,51 @@ namespace API_Scraper
             var response = await _client.SendQueryAsync<GetAllSetsResponse>(query);
             return response.Data.Response.Sets.Nodes;
         }
+
+        public async Task<List<Tournament>> GetRecentIndianaTournamentResults()
+        {
+            var query = new GraphQLRequest
+            {
+                Query = @"
+                query RecentIndianaTournamentResults {
+                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, perPage: 5, page: 1 }){
+                        nodes {
+                            id
+                            name
+                            events {
+                                entrants {
+                                    nodes {
+                                        id
+                                        name
+                                        standing {
+                                            placement
+                                        }
+                                        paginatedSets(perPage: 10 page: 1){
+                                            nodes {
+                                                displayScore
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }"
+            };
+            var response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
+            return response.Data.Tournaments.Nodes;
+        }
     }
 
     public class GetAllSetsResponse
     {
         [JsonProperty("player")]
         public GetSetsResponse Response { get; set; }
+    }
+
+    public class GetRecentIndianaTournamentResultsResponse
+    {
+        public TournamentConnection Tournaments { get; set; }
     }
 }
 

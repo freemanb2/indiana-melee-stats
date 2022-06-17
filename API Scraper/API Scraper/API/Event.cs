@@ -4,6 +4,7 @@ namespace API_Scraper.API
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public Tournament tournament { get; set; }
+        public Tournament Tournament { get; set; }
+        public EntrantConnection Entrants { get; set; }
     }
 }
