@@ -1,4 +1,6 @@
-﻿namespace API_Scraper.API
+﻿using System.Collections.Generic;
+
+namespace API_Scraper.API
 {
     public class EntrantConnection
     {

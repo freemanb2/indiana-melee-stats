@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using API_Scraper.Models;
+using System.Collections.Generic;
 
 namespace API_Scraper.Controllers
 {
@@ -19,8 +20,6 @@ namespace API_Scraper.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            //var playerId = 1000;
-            //var sets = await _consumer.GetAllSets(playerId);
             var results = await _consumer.GetRecentIndianaTournamentResults();
 
             List<Tournament> tournamentList = new List<Tournament>();
@@ -30,7 +29,7 @@ namespace API_Scraper.Controllers
                 tournamentList.Add(new Tournament(result));
             }
 
-            return Ok(results);
+            return Ok(tournamentList);
         }
 }
 }

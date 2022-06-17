@@ -1,4 +1,6 @@
-﻿namespace API_Scraper.Models
+﻿using System.Collections.Generic;
+
+namespace API_Scraper.Models
 {
     public class Tournament : BaseDataObject
     {
@@ -8,7 +10,11 @@
         public Tournament(API.Tournament API_Tournament)
         {
             TournamentName = API_Tournament.Name;
-            Events = API_Tournament.Events;
+            Events = new List<Event>();
+            for (var i = 0; i < API_Tournament.Events.Count; i++)
+            {
+                Events.Add(new Event(API_Tournament.Events[i]));
+            }
         }
     }
 }

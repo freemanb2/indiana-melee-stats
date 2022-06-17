@@ -3,6 +3,7 @@ using GraphQL;
 using GraphQL.Client.Abstractions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace API_Scraper
 {
@@ -104,19 +105,22 @@ namespace API_Scraper
                             id
                             name
                             events {
-                                entrants {
-                                    nodes {
-                                        id
-                                        name
-                                        standing {
-                                            placement
+                                sets {
+                                  nodes {
+                                    id
+                                    displayScore
+                                    winnerId
+                                    slots {
+                                      id
+                                      standing {
+                                        placement
+                                        entrant {
+                                          id
+                                          name
                                         }
-                                        paginatedSets(perPage: 10 page: 1){
-                                            nodes {
-                                                displayScore
-                                            }
-                                        }
+                                      }
                                     }
+                                  }
                                 }
                             }
                         }

@@ -1,4 +1,6 @@
-﻿namespace API_Scraper.Models
+﻿using System.Collections.Generic;
+
+namespace API_Scraper.Models
 {
     public class Event : BaseDataObject
     {
@@ -9,6 +11,11 @@
         public Event(API.Event API_Event)
         {
             EventName = API_Event.Name;
+            Sets = new List<Set>();
+            for (var i = 0; i < API_Event.Sets.Nodes.Count; i++)
+            {
+                Sets.Add(new Set(API_Event.Sets.Nodes[i]));
+            }
         }
     }
 }
