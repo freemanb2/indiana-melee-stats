@@ -27,3 +27,32 @@ C:\Users\bkfreeman\Desktop\smash-stats\API Scraper\API Scraper\obj\Debug\netcore
 C:\Users\bkfreeman\Desktop\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.dll
 C:\Users\bkfreeman\Desktop\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.pdb
 C:\Users\bkfreeman\Desktop\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.genruntimeconfig.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\appsettings.Development.json
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\appsettings.json
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.StaticWebAssets.xml
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.exe
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.deps.json
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.runtimeconfig.json
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.runtimeconfig.dev.json
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\API Scraper.pdb
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\GraphQL.Client.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\GraphQL.Client.Abstractions.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\GraphQL.Client.Abstractions.Websocket.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\GraphQL.Client.Serializer.Newtonsoft.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\GraphQL.Primitives.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\System.Reactive.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\bin\Debug\netcoreapp3.1\System.Reactive.xml
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.csproj.AssemblyReference.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.AssemblyInfoInputs.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.AssemblyInfo.cs
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.csproj.CoreCompileInputs.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\staticwebassets\API Scraper.StaticWebAssets.Manifest.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.RazorTargetAssemblyInfo.cache
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.csproj.CopyComplete
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.dll
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.pdb
+C:\Users\Brandon\Documents\Code\smash-stats\API Scraper\API Scraper\obj\Debug\netcoreapp3.1\API Scraper.genruntimeconfig.cache

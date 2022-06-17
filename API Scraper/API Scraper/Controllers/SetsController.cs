@@ -9,10 +9,10 @@ namespace API_Scraper.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class SetsController : ControllerBase
     {
         private readonly SetConsumer _consumer;
-        public ValuesController(SetConsumer consumer)
+        public SetsController(SetConsumer consumer)
         {
             _consumer = consumer;
         }

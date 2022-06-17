@@ -1,4 +1,4 @@
-namespace API_Scraper
+namespace API_Scraper.API
 {
     public class Event
     {

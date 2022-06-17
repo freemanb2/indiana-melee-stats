@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "f7947518-e826-42ff-9373-436aef8963c0": {
+      "ProjectGuid": "f7947518-e826-42ff-9373-436aef8963c0",
+      "DisplayName": "API Scraper",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
