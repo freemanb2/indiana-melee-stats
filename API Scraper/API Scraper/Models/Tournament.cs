@@ -9,6 +9,7 @@ namespace API_Scraper.Models
 
         public Tournament(API.Tournament API_Tournament)
         {
+            Id = API_Tournament.Id.ToString();
             TournamentName = API_Tournament.Name;
             Events = new List<Event>();
             for (var i = 0; i < API_Tournament.Events.Count; i++)

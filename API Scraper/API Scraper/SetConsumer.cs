@@ -48,7 +48,8 @@ namespace API_Scraper
                   }
                 }"
             };
-            var response = await _client.SendQueryAsync<GetAllSetsResponse>(query);
+            GraphQLResponse<GetAllSetsResponse> response = await _client.SendQueryAsync<GetAllSetsResponse>(query);
+            System.Console.WriteLine(response.Data.Response.Sets.Nodes);
             return response.Data.Response.Sets.Nodes;
         }
 
@@ -100,23 +101,39 @@ namespace API_Scraper
             {
                 Query = @"
                 query RecentIndianaTournamentResults {
-                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, perPage: 5, page: 1 }){
+                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, perPage: 1, page: 1 }){
                         nodes {
                             id
                             name
-                            events {
-                                sets {
+                            events(filter: { type: 1 }) {
+                                id
+                                name
+                                type
+                                tournament {
+                                    id
+                                }
+                                sets (page: 1, perPage: 100) {
                                   nodes {
                                     id
                                     displayScore
                                     winnerId
                                     slots {
                                       id
+                                      seed {
+                                        seedNum
+                                      }
                                       standing {
+                                        isFinal
+                                        metadata
                                         placement
                                         entrant {
                                           id
-                                          name
+                                          participants {
+                                            player {
+                                              id
+                                              gamerTag
+                                            }
+                                          }
                                         }
                                       }
                                     }
@@ -127,7 +144,7 @@ namespace API_Scraper
                     }
                 }"
             };
-            var response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
+            GraphQLResponse<GetRecentIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
             return response.Data.Tournaments.Nodes;
         }
     }

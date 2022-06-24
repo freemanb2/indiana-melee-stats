@@ -8,16 +8,7 @@
   <ItemGroup>
     <PackageReference Include="GraphQL.Client" Version="3.2.0" />
     <PackageReference Include="GraphQL.Client.Serializer.Newtonsoft" Version="3.2.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.16.1" />
   </ItemGroup>
-
-  <ItemGroup>
-	<Using Include="System.Collections.Generic" />
-	<Using Include="System.Linq"/>
-  </ItemGroup>
-
-<PropertyGroup>
-	<ImplicitUsings>enable</ImplicitUsings>
-</PropertyGroup>
-
 
 </Project>

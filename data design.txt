@@ -9,8 +9,8 @@ Tournament
     type (bracket/round robin/pools into bracket/etc) -> [events] -> rulesetId?
     matches [Matches] -> [events] -> [SetConnections] -> sets
 
-Match -> Set
-    match_id (guid) -> id
+Set
+    set_id (guid) -> id
     date -> completedAt
     tournament_name [Tournament.name]
     set_count (w/l)
