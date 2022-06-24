@@ -22,14 +22,7 @@ namespace API_Scraper.Controllers
         {
             var results = await _consumer.GetRecentIndianaTournamentResults();
 
-            List<Tournament> tournamentList = new List<Tournament>();
-            
-            foreach(var result in results)
-            {
-                tournamentList.Add(new Tournament(result));
-            }
-
-            return Ok(tournamentList);
+            return Ok(results);
         }
-}
+    }
 }
