@@ -34,41 +34,51 @@ namespace API_Scraper
             var _sets = _db.GetCollection<BsonDocument>("Sets");
             var _players = _db.GetCollection<BsonDocument>("Players");
 
-            var results = await _consumer.GetRecentIndianaTournamentResults();
-            var tournaments = new List<Tournament>();
             Tournament tournament;
+            List<API.Tournament> results;
 
-            foreach (API.Tournament result in results)
+            for (int i = 1; i <= 10; i++)
             {
-                tournament = new Tournament(result);
-                if (!DocumentExists(_tournaments, tournament.Id))
+                results = await _consumer.GetRecentIndianaTournamentResults(page: i);
+                foreach (API.Tournament result in results)
                 {
-                    var tournamentDocument = CreateTournamentDocument(tournament);
-                    _tournaments.InsertOne(tournamentDocument);
-                }
-                foreach (Event _event in tournament.Events) {
-                    if (!DocumentExists(_events, _event.Id))
+                    tournament = new Tournament(result);
+                    System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
+                    if (!DocumentExists(_tournaments, tournament.Id))
                     {
-                        var eventDocument = CreateEventDocument(_event);
-                        _events.InsertOne(eventDocument);
+                        var tournamentDocument = CreateTournamentDocument(tournament);
+                        _tournaments.InsertOne(tournamentDocument);
                     }
-                    foreach(Set set in _event.Sets)
+                    foreach (Event _event in tournament.Events)
                     {
-                        if (!DocumentExists(_sets, set.Id))
+                        if (IsValidEvent(_event))
                         {
-                            var setDocument = CreateSetDocument(set);
-                            _sets.InsertOne(setDocument);
-                        }
-                        foreach(var player in set.Players)
-                        {
-                            if (!DocumentExists(_players, player.Id))
+                            if (!DocumentExists(_events, _event.Id))
                             {
-                                var playerDocument = CreatePlayerDocument(player);
-                                _players.InsertOne(playerDocument);
+                                var eventDocument = CreateEventDocument(_event);
+                                _events.InsertOne(eventDocument);
+                            }
+                            foreach (Set set in _event.Sets)
+                            {
+                                if (IsValidSet(set))
+                                {
+                                    if (!DocumentExists(_sets, set.Id))
+                                    {
+                                        var setDocument = CreateSetDocument(set);
+                                        _sets.InsertOne(setDocument);
+                                    }
+                                    foreach (var player in set.Players)
+                                    {
+                                        if (!DocumentExists(_players, player.Id))
+                                        {
+                                            var playerDocument = CreatePlayerDocument(player);
+                                            _players.InsertOne(playerDocument);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-
                 }
             }
 
@@ -102,6 +112,11 @@ namespace API_Scraper
             return eventsBsonArray;
         }
 
+        public static bool IsValidEvent(Event _event)
+        {
+            return _event.State == "COMPLETED";
+        }
+
         public static BsonDocument CreateEventDocument(Event _event)
         {
             return new BsonDocument {
@@ -110,6 +125,11 @@ namespace API_Scraper
                 {"EventType", _event.EventType },
                 {"Sets", CreateEventSets(_event.Sets) }
             };
+        }
+
+        public static bool IsValidSet(Set set)
+        {
+            return set.DisplayScore != "DQ";
         }
 
         public static BsonArray CreateEventSets(List<Set> sets)

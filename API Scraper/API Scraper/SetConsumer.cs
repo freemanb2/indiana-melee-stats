@@ -95,24 +95,25 @@ namespace API_Scraper
             return response.Data.Response.Sets.Nodes;
         }
 
-        public async Task<List<Tournament>> GetRecentIndianaTournamentResults()
+        public async Task<List<Tournament>> GetRecentIndianaTournamentResults(int perPage = 1, int page = 1)
         {
             var query = new GraphQLRequest
             {
                 Query = @"
                 query RecentIndianaTournamentResults {
-                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, perPage: 1, page: 1 }){
+                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, perPage: " + perPage + @", page: " + page + @" }){
                         nodes {
                             id
                             name
-                            events(filter: { type: 1 }) {
+                            events(filter: { type: 1, videogameId: 1 }) {
                                 id
                                 name
                                 type
+                                state
                                 tournament {
                                     id
                                 }
-                                sets (page: 1, perPage: 100) {
+                                sets (page: 1, perPage: 100, filters: { state: 3 }) {
                                   nodes {
                                     id
                                     displayScore
