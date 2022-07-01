@@ -37,9 +37,13 @@ namespace API_Scraper
             Tournament tournament;
             List<API.Tournament> results;
 
-            for (int i = 1; i <= 10; i++)
+            var numTournamentsToRecord = 10;
+            var recentTournamentIds = await _consumer.GetRecentIndianaTournamentIds();
+            var tournamentsToQuery = GetMostRecentUnrecordedTournaments(_tournaments, recentTournamentIds, numTournamentsToRecord);
+
+            foreach (var tournamentId in tournamentsToQuery)
             {
-                results = await _consumer.GetRecentIndianaTournamentResults(page: i);
+                results = await _consumer.GetSpecificTournamentResults(tournamentId: tournamentId);
                 foreach (API.Tournament result in results)
                 {
                     tournament = new Tournament(result);
@@ -86,6 +90,23 @@ namespace API_Scraper
             
         }
 
+        public static List<string> GetMostRecentUnrecordedTournaments(IMongoCollection<BsonDocument> _tournaments, List<string> recentTournamentIds, int numTournamentsToRecord)
+        {
+            List<string> mostRecentUnrecordedTournaments = new List<string>();
+            int index = 0;
+
+            while(mostRecentUnrecordedTournaments.Count < numTournamentsToRecord && index < recentTournamentIds.Count)
+            {
+                if (!DocumentExists(_tournaments, recentTournamentIds[index]))
+                {
+                    mostRecentUnrecordedTournaments.Add(recentTournamentIds[index]);
+                }
+                index++;
+            }
+
+            return mostRecentUnrecordedTournaments;
+        }
+
         public static bool DocumentExists(IMongoCollection<BsonDocument> collection, string id)
         {
             return collection.Find(new BsonDocument { { "_id", id } }).CountDocuments() > 0;
@@ -114,7 +135,7 @@ namespace API_Scraper
 
         public static bool IsValidEvent(Event _event)
         {
-            return _event.State == "COMPLETED";
+            return _event.State == "COMPLETED" && !_event.EventName.ToLower().Contains("amateur");
         }
 
         public static BsonDocument CreateEventDocument(Event _event)

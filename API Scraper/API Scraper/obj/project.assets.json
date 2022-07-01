@@ -841,19 +841,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\bkfreeman\\.nuget\\packages\\": {}
+    "C:\\Users\\Brandon\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\bkfreeman\\Desktop\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+      "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
       "projectName": "API Scraper",
-      "projectPath": "C:\\Users\\bkfreeman\\Desktop\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
-      "packagesPath": "C:\\Users\\bkfreeman\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\bkfreeman\\Desktop\\smash-stats\\API Scraper\\API Scraper\\obj\\",
+      "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+      "packagesPath": "C:\\Users\\Brandon\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\bkfreeman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Brandon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -865,6 +870,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "projectReferences": {}
         }
       },
@@ -876,6 +882,7 @@
     },
     "frameworks": {
       "netcoreapp3.1": {
+        "targetAlias": "netcoreapp3.1",
         "dependencies": {
           "GraphQL.Client": {
             "target": "Package",
@@ -900,12 +907,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[3.1.2, 3.1.2]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -914,7 +915,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
       }
     }
   }

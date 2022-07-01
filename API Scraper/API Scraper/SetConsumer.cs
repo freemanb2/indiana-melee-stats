@@ -4,6 +4,7 @@ using GraphQL.Client.Abstractions;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace API_Scraper
 {
@@ -95,6 +96,53 @@ namespace API_Scraper
             return response.Data.Response.Sets.Nodes;
         }
 
+        public async Task<List<Tournament>> GetSpecificTournamentResults(string tournamentId)
+        {
+            var query = new GraphQLRequest
+            {
+                Query = @"
+                query RecentIndianaTournamentResults {
+                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, id: " + tournamentId + @" }, perPage: 1, page: 1 }){
+                        nodes {
+                            id
+                            name
+                            events(filter: { type: 1, videogameId: 1 }) {
+                                id
+                                name
+                                type
+                                state
+                                tournament {
+                                    id
+                                }
+                                sets (page: 1, perPage: 100, filters: { state: 3 }) {
+                                  nodes {
+                                    id
+                                    displayScore
+                                    winnerId
+                                    slots {
+                                      standing {
+                                        entrant {
+                                          id
+                                          participants {
+                                            player {
+                                              id
+                                              gamerTag
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                            }
+                        }
+                    }
+                }"
+            };
+            GraphQLResponse<GetRecentIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
+            return response.Data.Tournaments.Nodes;
+        }
+
         public async Task<List<Tournament>> GetRecentIndianaTournamentResults(int perPage = 1, int page = 1)
         {
             var query = new GraphQLRequest
@@ -148,6 +196,33 @@ namespace API_Scraper
             GraphQLResponse<GetRecentIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
             return response.Data.Tournaments.Nodes;
         }
+
+        public async Task<List<string>> GetRecentIndianaTournamentIds(int numTournaments = 1)
+        {
+            var query = new GraphQLRequest
+            {
+                Query = @"
+                    query RecentIndianaTournamentIds {
+                      tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, page: 1, perPage:500 }){
+                        nodes {
+                          id
+                        }
+                      }
+                    }
+                "
+            };
+            GraphQLResponse<GetRecentIndianaTournamentIdsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentIdsResponse>(query);
+
+            var tournamentIds = new List<string>();
+            var tournamentResults = response.Data.Tournaments.Nodes;
+
+            foreach(var tournament in tournamentResults)
+            {
+                tournamentIds.Add(tournament.Id.ToString());
+            }
+
+            return tournamentIds;
+        }
     }
 
     public class GetAllSetsResponse
@@ -157,6 +232,11 @@ namespace API_Scraper
     }
 
     public class GetRecentIndianaTournamentResultsResponse
+    {
+        public TournamentConnection Tournaments { get; set; }
+    }
+
+    public class GetRecentIndianaTournamentIdsResponse
     {
         public TournamentConnection Tournaments { get; set; }
     }
