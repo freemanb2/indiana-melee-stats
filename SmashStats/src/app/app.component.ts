@@ -13,5 +13,4 @@ import { catchError, retry } from 'rxjs/operators';
 export class AppComponent {
   constructor(private http: HttpClient) {}
   title = 'SmashStats';
-  tournamentData = this.http.get("https://localhost:44309/api/sets");
 }
