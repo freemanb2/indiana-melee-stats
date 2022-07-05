@@ -6,14 +6,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TournamentComponent } from './tournament/tournament.component';
 import { TournamentListComponent } from './tournament-list/tournament-list.component';
-import { RouterModule, Routes } from '@angular/router';
 import { EventComponent } from './event/event.component';
 import { SetComponent } from './set/set.component';
 import { PlayerComponent } from './player/player.component';
-
-const routes: Routes = [
-  { path: 'tournaments', component: TournamentListComponent}
-];
+import { HeadToHeadComponent } from './head-to-head/head-to-head.component';
 
 @NgModule({
   declarations: [
@@ -22,13 +18,13 @@ const routes: Routes = [
     TournamentListComponent,
     EventComponent,
     SetComponent,
-    PlayerComponent
+    PlayerComponent,
+    HeadToHeadComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule,
-    RouterModule.forRoot(routes)
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]

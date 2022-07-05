@@ -31,3 +31,20 @@ playersRouter.get("/:id", async (req: Request, res: Response) => {
         res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
     }
 });
+
+playersRouter.get("/gamertag/:gamerTag", async (req: Request, res: Response) => {
+    var gamerTag = req?.params?.gamerTag;
+    
+    try {
+        const query = { GamerTag: { $regex: new RegExp(gamerTag), $options: "i" } };
+        const player = (await collections.players.findOne(query)) as unknown as Player;
+
+        if (player) {
+            res.status(200).header("Access-Control-Allow-Origin", "*").send(player);
+        } else {
+            throw new Error();
+        }
+    } catch (error) {
+        res.status(404).send(`Unable to find matching player with GamerTag: ${req.params.gamerTag}`);
+    }
+});
