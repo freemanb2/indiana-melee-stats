@@ -98,49 +98,49 @@ namespace API_Scraper
 
         public async Task<List<Tournament>> GetSpecificTournamentResults(string tournamentId)
         {
-            var query = new GraphQLRequest
-            {
-                Query = @"
-                query RecentIndianaTournamentResults {
-                    tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, id: " + tournamentId + @" }, perPage: 1, page: 1 }){
-                        nodes {
+          var query = new GraphQLRequest
+          {
+              Query = @"
+              query RecentIndianaTournamentResults {
+                tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, id: " + tournamentId + @" }, perPage: 1, page: 1 }){
+                    nodes {
+                        id
+                        name
+                        events(filter: { type: 1, videogameId: 1 }) {
                             id
                             name
-                            events(filter: { type: 1, videogameId: 1 }) {
+                            type
+                            state
+                            tournament {
                                 id
-                                name
-                                type
-                                state
-                                tournament {
-                                    id
-                                }
-                                sets (page: 1, perPage: 100, filters: { state: 3 }) {
-                                  nodes {
-                                    id
-                                    displayScore
-                                    winnerId
-                                    slots {
-                                      standing {
-                                        entrant {
+                            }
+                            sets (page: 1, perPage: 100, filters: { state: 3 }) {
+                              nodes {
+                                id
+                                displayScore
+                                winnerId
+                                slots {
+                                  standing {
+                                    entrant {
+                                      id
+                                      participants {
+                                        player {
                                           id
-                                          participants {
-                                            player {
-                                              id
-                                              gamerTag
-                                            }
-                                          }
+                                          gamerTag
                                         }
                                       }
                                     }
                                   }
                                 }
+                              }
                             }
                         }
                     }
-                }"
-            };
-            GraphQLResponse<GetRecentIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
-            return response.Data.Tournaments.Nodes;
+                }
+            }"
+          };
+          GraphQLResponse<GetRecentIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentResultsResponse>(query);
+          return response.Data.Tournaments.Nodes;
         }
 
         public async Task<List<Tournament>> GetRecentIndianaTournamentResults(int perPage = 1, int page = 1)

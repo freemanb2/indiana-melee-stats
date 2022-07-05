@@ -1,0 +1,5 @@
+print(db)
+db.Players.deleteMany({})
+db.Sets.deleteMany({})
+db.Events.deleteMany({})
+db.Tournaments.deleteMany({})

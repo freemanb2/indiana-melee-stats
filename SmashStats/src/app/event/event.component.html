@@ -1,3 +1,6 @@
 <div class="event">
 {{eventName}}
+    <div *ngFor="let set of sets">
+        <set id={{set.Set}}></set>
+    </div>
 </div>

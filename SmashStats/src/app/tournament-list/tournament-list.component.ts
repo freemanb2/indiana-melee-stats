@@ -17,7 +17,8 @@ export class TournamentListComponent implements OnInit {
   }
 
   getRecentTournamentIds(): void {
-    var apiRoute = "http://localhost:8080/tournaments/recent/10";
+    var numTournamentsToDisplay = 10;
+    var apiRoute = "http://localhost:8080/tournaments/recent/" + numTournamentsToDisplay;
     var tournamentIds = Array<string>();
     this.http.get<Array<Tournament>>(apiRoute).subscribe((results: Array<Tournament>) => {
       results.forEach(result => {

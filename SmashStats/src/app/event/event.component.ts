@@ -12,7 +12,7 @@ export class EventComponent implements OnInit {
   @Input() id: string = "";
 
   public eventName = "";
-  public sets = Array<string>();
+  public sets = Array<any>();
 
   constructor(private http: HttpClient) { }
 

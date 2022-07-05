@@ -47,36 +47,38 @@ namespace API_Scraper
                 foreach (API.Tournament result in results)
                 {
                     tournament = new Tournament(result);
-                    System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
-                    if (!DocumentExists(_tournaments, tournament.Id))
-                    {
-                        var tournamentDocument = CreateTournamentDocument(tournament);
-                        _tournaments.InsertOne(tournamentDocument);
-                    }
-                    foreach (Event _event in tournament.Events)
-                    {
-                        if (IsValidEvent(_event))
+                    if(IsValidTournament(tournament)){
+                        System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
+                        if (!DocumentExists(_tournaments, tournament.Id))
                         {
-                            if (!DocumentExists(_events, _event.Id))
+                            var tournamentDocument = CreateTournamentDocument(tournament);
+                            _tournaments.InsertOne(tournamentDocument);
+                        }
+                        foreach (Event _event in tournament.Events)
+                        {
+                            if (IsValidEvent(_event))
                             {
-                                var eventDocument = CreateEventDocument(_event);
-                                _events.InsertOne(eventDocument);
-                            }
-                            foreach (Set set in _event.Sets)
-                            {
-                                if (IsValidSet(set))
+                                if (!DocumentExists(_events, _event.Id))
                                 {
-                                    if (!DocumentExists(_sets, set.Id))
+                                    var eventDocument = CreateEventDocument(_event);
+                                    _events.InsertOne(eventDocument);
+                                }
+                                foreach (Set set in _event.Sets)
+                                {
+                                    if (IsValidSet(set))
                                     {
-                                        var setDocument = CreateSetDocument(set);
-                                        _sets.InsertOne(setDocument);
-                                    }
-                                    foreach (var player in set.Players)
-                                    {
-                                        if (!DocumentExists(_players, player.Id))
+                                        if (!DocumentExists(_sets, set.Id))
                                         {
-                                            var playerDocument = CreatePlayerDocument(player);
-                                            _players.InsertOne(playerDocument);
+                                            var setDocument = CreateSetDocument(set);
+                                            _sets.InsertOne(setDocument);
+                                        }
+                                        foreach (var player in set.Players)
+                                        {
+                                            if (!DocumentExists(_players, player.Id))
+                                            {
+                                                var playerDocument = CreatePlayerDocument(player);
+                                                _players.InsertOne(playerDocument);
+                                            }
                                         }
                                     }
                                 }
@@ -110,6 +112,16 @@ namespace API_Scraper
         public static bool DocumentExists(IMongoCollection<BsonDocument> collection, string id)
         {
             return collection.Find(new BsonDocument { { "_id", id } }).CountDocuments() > 0;
+        }
+
+        public static bool IsValidTournament(Tournament tournament){
+            bool hasValidEvent = false;
+            foreach (Event _event in tournament.Events) {
+                if (IsValidEvent(_event)) { 
+                    hasValidEvent = true;
+                }
+            }
+            return hasValidEvent;
         }
 
         public static BsonDocument CreateTournamentDocument(Tournament tournament)
