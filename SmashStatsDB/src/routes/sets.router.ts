@@ -26,12 +26,8 @@ setsRouter.get("/:id1/:id2", async (req: Request, res: Response) => {
     const id1 = req?.params?.id1;
     const id2 = req?.params?.id2;
     var setsArray = new Array<any>();
-
-    console.log(id1);
-    console.log(id2);
-
     try {
-        const query = { $and: [ { "Players.Player": id1 }, { "Players.Player": id2 } ] };
+        const query = { $and: [ { "Players._id": id1 }, { "Players._id": id2 } ] };
         (await collections.sets.find(query)).forEach((set: any) => {
             setsArray.push(set);
         }).then(() => {

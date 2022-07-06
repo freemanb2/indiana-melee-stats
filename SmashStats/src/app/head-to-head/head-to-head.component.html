@@ -4,7 +4,12 @@
     <button (click)="getHeadToHeadResults(playerOne.value, playerTwo.value)">Get Results</button>
     <p>Player 1: {{playerOne.value}}</p>
     <p>Player 2: {{playerTwo.value}}</p>
-    <div *ngFor="let id of setIds">
-        <set id={{id}}></set>
+    <div *ngFor="let tournament of tournaments">
+        {{tournament.TournamentName}}
+        <div *ngFor="let event of tournament.Events">
+            <div *ngFor="let set of event.Sets">
+                {{set.DisplayScore}}
+            </div>
+        </div>
     </div>
 </div>

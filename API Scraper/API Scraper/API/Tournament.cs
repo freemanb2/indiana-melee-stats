@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 
 namespace API_Scraper.API
 {
@@ -6,6 +7,7 @@ namespace API_Scraper.API
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public int StartAt { get; set; }
         public List<Event> Events { get; set; }
     }
 }

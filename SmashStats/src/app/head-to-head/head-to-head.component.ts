@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import Set from 'src/models/set';
 import Player from 'src/models/player';
+import Tournament from 'src/models/tournament';
+import Event from 'src/models/event';
 
 @Component({
   selector: 'app-head-to-head',
@@ -9,7 +11,7 @@ import Player from 'src/models/player';
   styleUrls: ['./head-to-head.component.css']
 })
 export class HeadToHeadComponent implements OnInit {
-  public setIds = Array<string>();
+  public tournaments = Array<Tournament>();
   playerOne = '';
   playerTwo = '';
 
@@ -21,20 +23,21 @@ export class HeadToHeadComponent implements OnInit {
   getHeadToHeadResults(playerOne: any, playerTwo: any): void {
     this.getPlayerId(playerOne).subscribe((player1) => {
       this.getPlayerId(playerTwo).subscribe((player2) => {
-        var playerTwoId = this.getPlayerId(playerTwo);
-        var apiRoute = "http://localhost:8080/sets/" + player1._id + "/" + player2._id;
-        var setIds = Array<string>();
-        this.http.get<any>(apiRoute).subscribe((results: Array<Set>) => {
-          results.forEach((result: any) => {
-            setIds.push(result._id);
+        var apiRoute = "http://localhost:8080/tournaments/" + player1._id + "/" + player2._id;
+        this.http.get<any>(apiRoute).subscribe((results: Array<Tournament>) => {
+          results.forEach((tournament: Tournament) => {
+            tournament.Events.forEach((event: Event) => {
+              console.log(event.Sets);
+              event.Sets = event.Sets.filter((set) => { (set.Players.find((player) => { player._id == player1._id }) && set.Players.find((player) => { player._id == player2._id }))});
+            })
+            this.tournaments.push(tournament);
           });
         });
-        this.setIds = setIds;
       });
     });
   }
 
-  getPlayerId(player: any) {
+  getPlayerId(player: Player) {
     var apiRoute = "http://localhost:8080/players/gamerTag/" + player;
     return this.http.get<Player>(apiRoute);
   }

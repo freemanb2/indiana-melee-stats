@@ -17,14 +17,5 @@ export class EventComponent implements OnInit {
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.getEvent(this.id);
-  }
-
-  getEvent(id: string): void {
-    var apiRoute = "http://localhost:8080/events/" + id;
-    this.http.get<Event>(apiRoute).subscribe((result: Event) => {
-      this.eventName = result.EventName;
-      this.sets = result.Sets;
-    });
   }
 }

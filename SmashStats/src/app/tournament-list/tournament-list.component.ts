@@ -17,10 +17,15 @@ export class TournamentListComponent implements OnInit {
   }
 
   getRecentTournamentIds(): void {
-    var numTournamentsToDisplay = 10;
+    var numTournamentsToDisplay = 30;
     var apiRoute = "http://localhost:8080/tournaments/recent/" + numTournamentsToDisplay;
     var tournamentIds = Array<string>();
     this.http.get<Array<Tournament>>(apiRoute).subscribe((results: Array<Tournament>) => {
+      results.sort(function(a: Tournament, b: Tournament) {
+        if(a.Date > b.Date) return 1;
+        if(a.Date < b.Date) return -1;
+        return 0;
+      });
       results.forEach(result => {
         tournamentIds.push(result._id);
       });

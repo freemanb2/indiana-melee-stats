@@ -129,6 +129,7 @@ namespace API_Scraper
             return new BsonDocument {
                 {"_id", tournament.Id },
                 {"TournamentName", tournament.TournamentName },
+                {"Date", tournament.Date },
                 {"Events", CreateTournamentEvents(tournament.Events) }
             };
         }
@@ -138,16 +139,22 @@ namespace API_Scraper
             var eventsBsonArray = new BsonArray();
             foreach(Event e in events)
             {
-                eventsBsonArray.Add(new BsonDocument { 
-                    { "Event", e.Id }
-                });
+                eventsBsonArray.Add(CreateEventDocument(e));
             }
             return eventsBsonArray;
         }
 
         public static bool IsValidEvent(Event _event)
         {
-            return _event.State == "COMPLETED" && !_event.EventName.ToLower().Contains("amateur");
+            if(_event.EventName.ToLower().Contains("amateur")) return false;
+
+            var valid = false;
+            foreach(Set set in _event.Sets){
+                if(IsValidSet(set)){
+                    valid = true;
+                }
+            }
+            return valid;
         }
 
         public static BsonDocument CreateEventDocument(Event _event)
@@ -162,7 +169,7 @@ namespace API_Scraper
 
         public static bool IsValidSet(Set set)
         {
-            return set.DisplayScore != "DQ";
+            return set.WinnerId != null && set.DisplayScore != "DQ";
         }
 
         public static BsonArray CreateEventSets(List<Set> sets)
@@ -170,9 +177,7 @@ namespace API_Scraper
             var setsBsonArray = new BsonArray();
             foreach (Set set in sets)
             {
-                setsBsonArray.Add(new BsonDocument {
-                    { "Set", set.Id }
-                });
+                setsBsonArray.Add(CreateSetDocument(set));
             }
             return setsBsonArray;
         }
@@ -193,9 +198,7 @@ namespace API_Scraper
             var playersBsonArray = new BsonArray();
             foreach (Player player in players)
             {
-                playersBsonArray.Add(new BsonDocument {
-                    { "Player", player.Id }
-                });
+                playersBsonArray.Add(CreatePlayerDocument(player));
             }
             return playersBsonArray;
         }

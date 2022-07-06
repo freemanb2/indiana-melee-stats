@@ -106,6 +106,7 @@ namespace API_Scraper
                     nodes {
                         id
                         name
+                        startAt
                         events(filter: { type: 1, videogameId: 1 }) {
                             id
                             name

@@ -35,3 +35,21 @@ tournamentsRouter.get("/:id", async (req: Request, res: Response) => {
         res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
     }
 });
+
+tournamentsRouter.get("/:id1/:id2", async (req: Request, res: Response) => {
+    const id1 = req?.params?.id1;
+    const id2 = req?.params?.id2;
+    var tournamentsArray = new Array<any>();
+    try {
+        const query = { $and: [ { "Events.Sets.Players._id": id1 }, { "Events.Sets.Players._id": id2 } ] };
+        (await collections.tournaments.find(query)).forEach((tournament: any) => {
+            tournamentsArray.push(tournament);
+        }).then(() => {
+            if (tournamentsArray) {
+                res.status(200).header("Access-Control-Allow-Origin", "*").send(tournamentsArray);
+            }
+        });
+    } catch (error) {
+        res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
+    }
+});
