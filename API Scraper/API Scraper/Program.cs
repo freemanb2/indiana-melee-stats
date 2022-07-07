@@ -189,8 +189,17 @@ namespace API_Scraper
                 {"DisplayScore", set.DisplayScore },
                 {"WinnerId", set.WinnerId },
                 {"LoserId", set.LoserId },
+                {"PlayerIds", GetPlayerIdsForSet(set.Players) },
                 {"Players", CreateSetPlayers(set.Players) }
             };
+        }
+
+        public static BsonArray GetPlayerIdsForSet(List<Player> players){
+            var playerIdsBsonArray = new BsonArray();
+            foreach (Player player in players){
+                playerIdsBsonArray.Add(player.Id);
+            }
+            return playerIdsBsonArray;
         }
 
         public static BsonArray CreateSetPlayers(List<Player> players)

@@ -4,6 +4,7 @@
     <div class="event">
         {{event.EventName}}
         <div class="set" *ngFor="let set of event.Sets">
+            {{set.TournamentName}}
             {{set.DisplayScore}}
         </div>
     </div>

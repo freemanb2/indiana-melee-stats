@@ -11,7 +11,8 @@ import Event from 'src/models/event';
   styleUrls: ['./head-to-head.component.css']
 })
 export class HeadToHeadComponent implements OnInit {
-  public tournaments = Array<Tournament>();
+  public sets = Array<any>();
+  public uniqueTournaments = Array<any>();
   playerOne = '';
   playerTwo = '';
 
@@ -21,21 +22,25 @@ export class HeadToHeadComponent implements OnInit {
   }
 
   getHeadToHeadResults(playerOne: any, playerTwo: any): void {
+    this.sets = Array<any>();
     this.getPlayerId(playerOne).subscribe((player1) => {
       this.getPlayerId(playerTwo).subscribe((player2) => {
-        var apiRoute = "http://localhost:8080/tournaments/" + player1._id + "/" + player2._id;
-        this.http.get<any>(apiRoute).subscribe((results: Array<Tournament>) => {
-          results.forEach((tournament: Tournament) => {
-            tournament.Events.forEach((event: Event) => {
-              console.log(event.Sets);
-              event.Sets = event.Sets.filter((set) => { (set.Players.find((player) => { player._id == player1._id }) && set.Players.find((player) => { player._id == player2._id }))});
+        var apiRoute = "http://localhost:8080/sets/" + player1._id + "/" + player2._id;
+        this.http.get<any>(apiRoute).subscribe((results: Array<Set>) => {
+          results.forEach((set: any) => {
+              var getTournamentDetails = "http://localhost:8080/tournaments/set/" + set._id;
+              this.http.get<any>(getTournamentDetails).subscribe((results) => {
+                set.TournamentName = results.TournamentName; 
+                this.sets.push(set);
+                if(this.uniqueTournaments.indexOf(results.TournamentName == -1)){
+                  this.uniqueTournaments.push(results.TournamnetName);
+                }
+              });
             })
-            this.tournaments.push(tournament);
           });
         });
       });
-    });
-  }
+    };
 
   getPlayerId(player: Player) {
     var apiRoute = "http://localhost:8080/players/gamerTag/" + player;
