@@ -27,8 +27,8 @@ namespace API_Scraper
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "fa9a0aa93bf21b04a207eb364549e31b");
             SetConsumer _consumer = new SetConsumer(client);
 
-            MongoClient dbClient = new MongoClient("mongodb://localhost:27017/SmashStatsDB");
-            var _db = dbClient.GetDatabase("SmashStatsDB");
+            MongoClient dbClient = new MongoClient("mongodb://localhost:27017/IndianaMeleeStatsDB");
+            var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
             var _events = _db.GetCollection<BsonDocument>("Events");
             var _sets = _db.GetCollection<BsonDocument>("Sets");

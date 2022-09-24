@@ -1,0 +1,11 @@
+<div class="head-to-head">
+    <span>Player 1 <input #playerOne /> </span>
+    <span>Player 2 <input #playerTwo /> </span>
+    <button (click)="getHeadToHeadResults(playerOne.value, playerTwo.value)">Get Results</button>
+    <p>Player 1: {{playerOne.value}}</p>
+    <p>Player 2: {{playerTwo.value}}</p>
+    <div *ngFor="let set of sets">
+        {{set.TournamentName}}<br/>
+        {{set.DisplayScore}}
+    </div>
+</div>
