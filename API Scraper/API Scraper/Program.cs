@@ -34,52 +34,59 @@ namespace API_Scraper
             var _sets = _db.GetCollection<BsonDocument>("Sets");
             var _players = _db.GetCollection<BsonDocument>("Players");
 
-            Tournament tournament;
-            List<API.Tournament> results;
-
-            var numTournamentsToRecord = 10;
+            var numTournamentsToRecord = 20;
+            var numTournamentsRecorded = 0;
             var recentTournamentIds = await _consumer.GetRecentIndianaTournamentIds();
-            var tournamentsToQuery = GetMostRecentUnrecordedTournaments(_tournaments, recentTournamentIds, numTournamentsToRecord);
-
-            foreach (var tournamentId in tournamentsToQuery)
+            //var tournamentsToQuery = GetMostRecentUnrecordedTournaments(_tournaments, recentTournamentIds, numTournamentsToRecord);
+            List<Tournament> validTournaments = new List<Tournament>();
+            foreach (var tournamentId in recentTournamentIds)
             {
-                results = await _consumer.GetSpecificTournamentResults(tournamentId: tournamentId);
-                foreach (API.Tournament result in results)
+                if (IsUnrecordedTournament(_tournaments, tournamentId))
                 {
-                    tournament = new Tournament(result);
-                    if(IsValidTournament(tournament)){
-                        System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
-                        if (!DocumentExists(_tournaments, tournament.Id))
+                    API.Tournament results = await _consumer.GetSpecificTournamentResults(tournamentId: tournamentId);
+                    Tournament tournament = new Tournament(results);
+                    if (IsValidTournament(tournament))
+                    {
+                        validTournaments.Add(tournament);
+                        numTournamentsRecorded++;
+                    }
+                }
+                
+                if (numTournamentsRecorded == numTournamentsToRecord) break;
+            }
+
+            foreach (var tournament in validTournaments)
+            {
+                System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
+                if (!DocumentExists(_tournaments, tournament.Id))
+                {
+                    var tournamentDocument = CreateTournamentDocument(tournament);
+                    _tournaments.InsertOne(tournamentDocument);
+                }
+                foreach (Event _event in tournament.Events)
+                {
+                    if (IsValidEvent(_event))
+                    {
+                        if (!DocumentExists(_events, _event.Id))
                         {
-                            var tournamentDocument = CreateTournamentDocument(tournament);
-                            _tournaments.InsertOne(tournamentDocument);
+                            var eventDocument = CreateEventDocument(_event);
+                            _events.InsertOne(eventDocument);
                         }
-                        foreach (Event _event in tournament.Events)
+                        foreach (Set set in _event.Sets)
                         {
-                            if (IsValidEvent(_event))
+                            if (IsValidSet(set))
                             {
-                                if (!DocumentExists(_events, _event.Id))
+                                if (!DocumentExists(_sets, set.Id))
                                 {
-                                    var eventDocument = CreateEventDocument(_event);
-                                    _events.InsertOne(eventDocument);
+                                    var setDocument = CreateSetDocument(set);
+                                    _sets.InsertOne(setDocument);
                                 }
-                                foreach (Set set in _event.Sets)
+                                foreach (var player in set.Players)
                                 {
-                                    if (IsValidSet(set))
+                                    if (!DocumentExists(_players, player.Id))
                                     {
-                                        if (!DocumentExists(_sets, set.Id))
-                                        {
-                                            var setDocument = CreateSetDocument(set);
-                                            _sets.InsertOne(setDocument);
-                                        }
-                                        foreach (var player in set.Players)
-                                        {
-                                            if (!DocumentExists(_players, player.Id))
-                                            {
-                                                var playerDocument = CreatePlayerDocument(player);
-                                                _players.InsertOne(playerDocument);
-                                            }
-                                        }
+                                        var playerDocument = CreatePlayerDocument(player);
+                                        _players.InsertOne(playerDocument);
                                     }
                                 }
                             }
@@ -107,6 +114,11 @@ namespace API_Scraper
             }
 
             return mostRecentUnrecordedTournaments;
+        }
+
+        public static bool IsUnrecordedTournament(IMongoCollection<BsonDocument> _tournaments, string tournamentId)
+        {
+            return !DocumentExists(_tournaments, tournamentId);
         }
 
         public static bool DocumentExists(IMongoCollection<BsonDocument> collection, string id)
@@ -147,7 +159,7 @@ namespace API_Scraper
         public static bool IsValidEvent(Event _event)
         {
             if(_event.EventName.ToLower().Contains("amateur")) return false;
-
+            if (!_event.State.ToLower().Equals("completed") && !_event.State.ToLower().Equals("active")) return false;
             var valid = false;
             foreach(Set set in _event.Sets){
                 if(IsValidSet(set)){

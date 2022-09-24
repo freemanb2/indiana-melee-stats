@@ -22,8 +22,8 @@ export class TournamentListComponent implements OnInit {
     var tournamentIds = Array<string>();
     this.http.get<Array<Tournament>>(apiRoute).subscribe((results: Array<Tournament>) => {
       results.sort(function(a: Tournament, b: Tournament) {
-        if(a.Date > b.Date) return 1;
-        if(a.Date < b.Date) return -1;
+        if(a.Date < b.Date) return 1;
+        if(a.Date > b.Date) return -1;
         return 0;
       });
       results.forEach(result => {
