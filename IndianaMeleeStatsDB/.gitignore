@@ -6,4 +6,4 @@ node_modules/
 dist/**/*
 
 # Ignore .env file as it holds secrets
-.env
+# .env
