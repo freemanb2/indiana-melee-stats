@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7NSdPwA13Syb8K0xhyQ2hc4XvB0kEran8S1hGgVes9dTN0dJQrGDR5h+ga5s4kgcgCZqhkZPgHA1DC04HD2ULw==",
+  "dgSpecHash": "PR+01U8Kzb8CkMDCeezmhGE3GO7XPsSPRfMb7C61SldvveuYsNEVpgMM8S5sqlyQYIIdm5BW4Wt+f0ausE6LWQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+  "projectFilePath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Brandon\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\Brandon\\.nuget\\packages\\graphql.client\\3.2.0\\graphql.client.3.2.0.nupkg.sha512",

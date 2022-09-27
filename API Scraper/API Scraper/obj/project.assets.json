@@ -847,11 +847,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+      "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
       "projectName": "API Scraper",
-      "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+      "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
       "packagesPath": "C:\\Users\\Brandon\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\obj\\",
+      "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

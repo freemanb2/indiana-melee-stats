@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "IndianaMeleeStats: {
+    "IndianaMeleeStats": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -96,6 +96,9 @@
           }
         }
       }
+    },
+    "cli": {
+      "analytics": "a6e3073f-cf74-4b21-982a-0455e59ff954"
     }
   },
   "cli": {
