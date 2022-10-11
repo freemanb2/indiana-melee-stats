@@ -20,12 +20,12 @@ namespace API_Scraper
         {
             Tournament tournament = new Tournament();
             int page = 1;
-            int limit = 40;
-            GraphQLResponse<GetSpecificIndianaTournamentResultsResponse> response = await _client.SendQueryAsync<GetSpecificIndianaTournamentResultsResponse>(GetSpecificTournamentQueryString(tournamentId, page++, limit));
+            int limit = 30;
+            GraphQLResponse<GetSpecificIndianaTournamentResultsResponse> response = await GetNextTournamentResultsPage(tournamentId, page++, limit);
             tournament = response.Data.Tournament;
             if (tournament.Events.Any(e => e.Sets.Nodes.Count == limit))
             {
-                response = await _client.SendQueryAsync<GetSpecificIndianaTournamentResultsResponse>(GetSpecificTournamentQueryString(tournamentId, page++, limit));
+                response = await GetNextTournamentResultsPage(tournamentId, page++, limit);
                 while (response.Data.Tournament.Events.Any(e => e.Sets.Nodes.Count != 0))
                 {
                     foreach (var t in tournament.Events)
@@ -33,19 +33,40 @@ namespace API_Scraper
                         Event e = response.Data.Tournament.Events.Where(x => x.Name == t.Name).Single();
                         t.Sets.Nodes.AddRange(e.Sets.Nodes);
                     }
-                    response = await _client.SendQueryAsync<GetSpecificIndianaTournamentResultsResponse>(GetSpecificTournamentQueryString(tournamentId, page++, limit));
+                    response = await GetNextTournamentResultsPage(tournamentId, page++, limit);
                 }
             }
             return tournament;
         }
 
-        public async Task<List<string>> GetRecentIndianaTournamentIds(int numTournaments = 1)
+        private async Task<GraphQLResponse<GetSpecificIndianaTournamentResultsResponse>> GetNextTournamentResultsPage(string tournamentId, int page, int limit)
+        {
+            GraphQLResponse<GetSpecificIndianaTournamentResultsResponse> response;
+            while (true)
+            {
+                try
+                {
+                    response = await _client.SendQueryAsync<GetSpecificIndianaTournamentResultsResponse>(GetSpecificTournamentQueryString(tournamentId, page++, limit));
+                    break;
+                }
+                catch (GraphQL.Client.Http.GraphQLHttpRequestException e)
+                {
+                    System.Console.WriteLine("Too many requests exception detected, sleeping for 30 seconds....");
+                    System.Console.WriteLine($"Exception details: {e.Message}");
+                    System.Threading.Thread.Sleep(30000);
+                    System.Console.WriteLine("Retrying request");
+                }
+            }
+            return response;
+        }
+
+        public async Task<List<string>> GetRecentIndianaTournamentIds(int numTournaments)
         {
             var query = new GraphQLRequest
             {
                 Query = @"
                     query RecentIndianaTournamentIds {
-                      tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, page: 1, perPage:500 }){
+                      tournaments(query: { filter: { addrState: ""IN"", videogameIds: [1], past: true, published: true, publiclySearchable: true }, page: 1, perPage: " + numTournaments + @" }){
                         nodes {
                           id
                         }
@@ -84,22 +105,22 @@ namespace API_Scraper
                             }
                             sets (page: " + page + @", perPage: " + limit + @", filters: { state: 3 }) {
                                 nodes {
-                                id
-                                displayScore
-                                winnerId
-                                slots {
-                                    standing {
-                                    entrant {
-                                        id
-                                        participants {
-                                        player {
-                                            id
-                                            gamerTag
-                                        }
+                                    id
+                                    displayScore
+                                    winnerId
+                                    slots {
+                                        standing {
+                                            entrant {
+                                                id
+                                                participants {
+                                                    player {
+                                                        id
+                                                        gamerTag
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
-                                    }
-                                }
                                 }
                             }
                         }

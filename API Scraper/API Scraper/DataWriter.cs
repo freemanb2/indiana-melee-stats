@@ -1,0 +1,167 @@
+﻿using System.Collections.Generic;
+
+using MongoDB.Driver;
+using API_Scraper.Models;
+using MongoDB.Bson;
+
+namespace API_Scraper
+{
+    public class DataWriter
+    {
+        private IMongoCollection<BsonDocument> _tournaments;
+        private IMongoCollection<BsonDocument> _events;
+        private IMongoCollection<BsonDocument> _sets;
+        private IMongoCollection<BsonDocument> _players;
+        private DataValidator _validator;
+
+        public DataWriter(IMongoDatabase db)
+        {
+            _tournaments = db.GetCollection<BsonDocument>("Tournaments");
+            _events = db.GetCollection<BsonDocument>("Events");
+            _sets = db.GetCollection<BsonDocument>("Sets");
+            _players = db.GetCollection<BsonDocument>("Players");
+            _validator = new DataValidator();
+        }
+
+        #region public methods
+        public void WriteTournament(Tournament _tournament, bool valid = true) {
+            var tournamentDocument = CreateTournamentDocument(_tournament, valid);
+            try
+            {
+                _tournaments.InsertOne(tournamentDocument);
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine($"Exception while writing Tournament with id {_tournament.Id} and name {_tournament.TournamentName}: ", e.Message);
+            }
+        }
+
+        public void WriteEvent(Event _event)
+        {
+            var eventDocument = CreateEventDocument(_event);
+            try
+            {
+                _events.InsertOne(eventDocument);
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine($"Exception while writing Event with id {_event.Id} and name {_event.EventName}: ", e.Message);
+            }
+        }
+
+        public void WriteSet(Set _set)
+        {
+            var setDocument = CreateSetDocument(_set);
+            try
+            {
+                _sets.InsertOne(setDocument);
+            }
+            catch (System.Exception e)
+            {
+                System.Console.WriteLine($"Exception while writing Set with id {_set.Id}: ", e.Message);
+            }
+        }
+
+        public void WritePlayer(Player _player)
+        {
+            var playerDocument = CreatePlayerDocument(_player);
+            if(!_validator.DocumentExists(_players, _player.Id)){
+                try
+                {
+                    _players.InsertOne(playerDocument);
+                }
+                catch (System.Exception e)
+                {
+                    System.Console.WriteLine($"Exception while writing Player with id {_player.Id} and gamerTag {_player.GamerTag}: ", e.Message);
+                }
+            }
+        }
+        #endregion
+
+        #region helper methods
+        private BsonDocument CreateTournamentDocument(Tournament tournament, bool valid = true)
+        {
+            return new BsonDocument {
+                {"_id", tournament.Id },
+                {"TournamentName", tournament.TournamentName },
+                {"Date", tournament.Date },
+                {"Events", CreateTournamentEvents(tournament.Events) },
+                {"Valid", valid }
+            };
+        }
+
+        private BsonArray CreateTournamentEvents(List<Event> events)
+        {
+            var eventsBsonArray = new BsonArray();
+            foreach (Event e in events)
+            {
+                eventsBsonArray.Add(CreateEventDocument(e));
+            }
+            return eventsBsonArray;
+        }
+
+        private BsonDocument CreateEventDocument(Event _event)
+        {
+            return new BsonDocument {
+                {"_id", _event.Id },
+                {"EventName", _event.EventName },
+                {"EventType", _event.EventType },
+                {"Sets", CreateEventSets(_event.Sets) }
+            };
+        }
+
+        private BsonArray CreateEventSets(List<Set> sets)
+        {
+            var setsBsonArray = new BsonArray();
+            foreach (Set set in sets)
+            {
+                setsBsonArray.Add(CreateSetDocument(set));
+            }
+            return setsBsonArray;
+        }
+
+        private BsonDocument CreateSetDocument(Set set)
+        {
+            return new BsonDocument {
+                {"_id", set.Id },
+                {"DisplayScore", set.DisplayScore },
+                {"WinnerId", set.WinnerId },
+                {"LoserId", set.LoserId },
+                {"PlayerIds", GetPlayerIdsForSet(set.Players) },
+                {"Players", CreateSetPlayers(set.Players) }
+            };
+        }
+
+        private BsonArray GetPlayerIdsForSet(List<Player> players)
+        {
+            var playerIdsBsonArray = new BsonArray();
+            foreach (Player player in players)
+            {
+                playerIdsBsonArray.Add(player.Id);
+            }
+            return playerIdsBsonArray;
+        }
+
+        private BsonArray CreateSetPlayers(List<Player> players)
+        {
+            var playersBsonArray = new BsonArray();
+            foreach (Player player in players)
+            {
+                playersBsonArray.Add(CreatePlayerDocument(player));
+            }
+            return playersBsonArray;
+        }
+
+        private BsonDocument CreatePlayerDocument(Player player)
+        {
+            return new BsonDocument {
+                {"_id", player.Id },
+                {"Elo", player.Elo },
+                {"GamerTag", player.GamerTag },
+                {"Region", player.Region },
+                {"MainCharacter", player.MainCharacter }
+            };
+        }
+        #endregion
+    }
+}
