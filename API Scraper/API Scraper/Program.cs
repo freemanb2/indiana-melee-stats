@@ -10,6 +10,8 @@ using MongoDB.Driver;
 
 using API_Scraper.Models;
 using MongoDB.Bson;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace API_Scraper
 {
@@ -17,17 +19,25 @@ namespace API_Scraper
     {
         public static void Main(string[] args)
         {
-            //CreateHostBuilder(args).Build().Run();
-            var task = ScrapeStartGGAPI();
+            var root = Directory.GetCurrentDirectory();
+            var dotenv = Path.Combine(root, ".env");
+            DotEnv.Load(dotenv);
+
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var task = ScrapeStartGGAPI(config);
             task.Wait();
         }
 
-        public async static Task ScrapeStartGGAPI(){
-            var client = new GraphQLHttpClient("https://api.start.gg/gql/alpha", new NewtonsoftJsonSerializer());
-            client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "fa9a0aa93bf21b04a207eb364549e31b");
+        public async static Task ScrapeStartGGAPI(IConfigurationRoot config){
+            var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
+            client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
             SetConsumer _consumer = new SetConsumer(client);
-
-            MongoClient dbClient = new MongoClient("mongodb://localhost:27017/IndianaMeleeStatsDB");
+            
+            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
             var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
             var _events = _db.GetCollection<BsonDocument>("Events");
@@ -37,7 +47,6 @@ namespace API_Scraper
             var numTournamentsToRecord = 20;
             var numTournamentsRecorded = 0;
             var recentTournamentIds = await _consumer.GetRecentIndianaTournamentIds();
-            //var tournamentsToQuery = GetMostRecentUnrecordedTournaments(_tournaments, recentTournamentIds, numTournamentsToRecord);
             List<Tournament> validTournaments = new List<Tournament>();
             foreach (var tournamentId in recentTournamentIds)
             {
