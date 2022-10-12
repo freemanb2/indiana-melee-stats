@@ -24,8 +24,10 @@ namespace API_Scraper
         }
 
         #region public methods
-        public void WriteTournament(Tournament _tournament, bool valid = true) {
-            var tournamentDocument = CreateTournamentDocument(_tournament, valid);
+        public void WriteTournament(Tournament _tournament) {
+            if (_validator.DocumentExists(_tournaments, _tournament.Id)) return;
+
+            var tournamentDocument = CreateTournamentDocument(_tournament);
             try
             {
                 _tournaments.InsertOne(tournamentDocument);
@@ -38,6 +40,8 @@ namespace API_Scraper
 
         public void WriteEvent(Event _event)
         {
+            if (_validator.DocumentExists(_events, _event.Id)) return;
+
             var eventDocument = CreateEventDocument(_event);
             try
             {
@@ -51,6 +55,8 @@ namespace API_Scraper
 
         public void WriteSet(Set _set)
         {
+            if (_validator.DocumentExists(_sets, _set.Id)) return;
+
             var setDocument = CreateSetDocument(_set);
             try
             {
@@ -64,6 +70,8 @@ namespace API_Scraper
 
         public void WritePlayer(Player _player)
         {
+            if (_validator.DocumentExists(_players, _player.Id)) return;
+
             var playerDocument = CreatePlayerDocument(_player);
             if(!_validator.DocumentExists(_players, _player.Id)){
                 try
@@ -79,14 +87,15 @@ namespace API_Scraper
         #endregion
 
         #region helper methods
-        private BsonDocument CreateTournamentDocument(Tournament tournament, bool valid = true)
+        private BsonDocument CreateTournamentDocument(Tournament tournament)
         {
             return new BsonDocument {
                 {"_id", tournament.Id },
                 {"TournamentName", tournament.TournamentName },
+                {"Link", tournament.Link },
                 {"Date", tournament.Date },
                 {"Events", CreateTournamentEvents(tournament.Events) },
-                {"Valid", valid }
+                {"Completed", _validator.IsCompletedTournament(tournament) }
             };
         }
 
@@ -106,6 +115,7 @@ namespace API_Scraper
                 {"_id", _event.Id },
                 {"EventName", _event.EventName },
                 {"EventType", _event.EventType },
+                {"State", _event.State },
                 {"Sets", CreateEventSets(_event.Sets) }
             };
         }

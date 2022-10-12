@@ -1,4 +1,6 @@
-﻿namespace API_Scraper.Models
+﻿using MongoDB.Bson;
+
+namespace API_Scraper.Models
 {
     public class Player : BaseDataObject
     {
@@ -14,6 +16,15 @@
             GamerTag = gamerTag;
             Region = region;
             MainCharacter = mainCharacter;
+        }
+
+        public Player(BsonDocument player)
+        {
+            Id = player.GetValue("_id").ToString();
+            Elo = player.GetValue("Elo").ToInt32();
+            GamerTag = player.GetValue("GamerTag").ToString();
+            Region = player.GetValue("Region").ToString();
+            MainCharacter = player.GetValue("MainCharacter").ToString();
         }
     }
 }

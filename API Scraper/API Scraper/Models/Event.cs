@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Bson;
+using System.Collections.Generic;
 
 namespace API_Scraper.Models
 {
@@ -20,6 +21,21 @@ namespace API_Scraper.Models
             for (var i = 0; i < API_Event.Sets.Nodes.Count; i++)
             {
                 Sets.Add(new Set(API_Event.Sets.Nodes[i]));
+            }
+        }
+
+        public Event(BsonDocument _event)
+        {
+            Id = _event.GetValue("_id").ToString();
+            EventType = _event.GetValue("EventType").ToString();
+            EventName = _event.GetValue("EventName").ToString();
+            State = _event.GetValue("State").ToString();
+            Sets = new List<Set>();
+
+            var documentSets = _event.GetValue("Sets").AsBsonArray;
+            foreach (var document in documentSets)
+            {
+                Sets.Add(new Set(document.AsBsonDocument));
             }
         }
     }

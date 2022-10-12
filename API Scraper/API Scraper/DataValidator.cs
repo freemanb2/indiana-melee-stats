@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using API_Scraper.Models;
 using MongoDB.Bson;
 using System.Threading.Tasks;
+using System;
 
 namespace API_Scraper
 {
@@ -30,10 +31,6 @@ namespace API_Scraper
                         validTournaments.Add(tournament);
                         numTournamentsRecorded++;
                     }
-                    else
-                    {
-                        writer.WriteTournament(tournament, false);
-                    }
                 }
 
                 if (numTournamentsRecorded == numTournamentsToRecord) break;
@@ -42,9 +39,23 @@ namespace API_Scraper
             return validTournaments;
         }
 
+        public List<Tournament> GetRecentIncompleteTournaments(IMongoDatabase _db)
+        {
+            var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
+            var recentIncompleteTournamentDocuments = _tournaments.Find(x => x["Completed"] == false && x["Date"] >= DateTime.Now.AddDays(-30)).ToList();
+            var recentIncompleteTournaments = new List<Tournament>();
+
+            foreach(var document in recentIncompleteTournamentDocuments)
+            {
+                recentIncompleteTournaments.Add(new Tournament(document));
+            }
+
+            return recentIncompleteTournaments;
+        }
+
         public bool DocumentExists(IMongoCollection<BsonDocument> collection, string id)
         {
-            return collection.Find(new BsonDocument { { "_id", id } }).CountDocuments() > 0;
+            return collection.Find(x => x["_id"] == id).CountDocuments() > 0;
         }
 
         #region document validation
@@ -60,23 +71,34 @@ namespace API_Scraper
             return false;
         }
 
+        public bool IsCompletedTournament(Tournament tournament)
+        {
+            foreach (var e in tournament.Events)
+            {
+                if (IsValidEvent(e) && !IsCompletedEvent(e))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public bool IsValidEvent(Event _event)
         {
             if (_event.EventName.ToLower().Contains("amateur")) return false;
             if (!_event.EventName.ToLower().Contains("singles")) return false;
             if (!_event.State.ToLower().Equals("completed") && !_event.State.ToLower().Equals("active")) return false;
-            foreach (Set set in _event.Sets)
-            {
-                if (IsValidSet(set))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return true;
+        }
+
+        public bool IsCompletedEvent(Event _event)
+        {
+            return _event.State.ToLower().Equals("completed");
         }
 
         public bool IsValidSet(Set set)
         {
+            //Set is finished and was not a DQ
             return set.WinnerId != null && set.DisplayScore != "DQ";
         }
 

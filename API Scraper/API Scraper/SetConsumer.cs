@@ -94,6 +94,7 @@ namespace API_Scraper
                     tournament(id: " + tournamentId + @"){
                         id
                         name
+                        slug
                         startAt
                         events(filter: { type: 1, videogameId: 1 }) {
                             id

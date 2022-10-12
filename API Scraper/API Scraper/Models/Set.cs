@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Bson;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace API_Scraper.Models
@@ -21,6 +22,21 @@ namespace API_Scraper.Models
             }
             WinnerId = API_Set.Slots.Where(slot => slot.Standing.Entrant.Id == API_Set.WinnerId).FirstOrDefault().Standing.Entrant.Participants[0].Player.Id.ToString();
             LoserId = WinnerId.ToString() == Players[0].Id ? Players[1].Id : Players[0].Id;
+        }
+
+        public Set(BsonDocument set)
+        {
+            Id = set.GetValue("_id").ToString();
+            DisplayScore = set.GetValue("DisplayScore").ToString();
+            WinnerId = set.GetValue("WinnerId").ToString();
+            LoserId = set.GetValue("LoserId").ToString();
+            Players = new List<Player>();
+
+            var documentPlayers = set.GetValue("Players").AsBsonArray;
+            foreach (var player in documentPlayers)
+            {
+                Players.Add(new Player(player.AsBsonDocument));
+            }
         }
     }
 }

@@ -25,6 +25,8 @@ namespace API_Scraper
                 .AddEnvironmentVariables()
                 .Build();
 
+            ReprocessRecentIncompleteTournaments(config);
+
             var task = ScrapeStartGGAPI(config);
             task.Wait();
         }
@@ -39,8 +41,30 @@ namespace API_Scraper
             DataValidator validator = new DataValidator();
             DataWriter writer = new DataWriter(_db);
             List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 20);
-            
-            foreach (var tournament in validTournaments)
+
+            ParseTournaments(validTournaments, writer, validator);
+        }
+
+        // Look for incomplete tournaments that happened in the last 30 days and query for updates that may have occurred.
+        // Context: A tournament could be processed intially while it's still happening, or if the TO hasn't finalized the brackets yet. 
+        //          Tournaments are also picked up in the "Created" state if the query happens on the day they're scheduled to happen. These tournaments are marked as incomplete.
+        //          We want to continuously query for changes to these tournaments over the next 30 days to check and see if the bracket was finalized as some point so we can make sure that we've accounted for all sets that occurred.
+        //          After 30 days, we can safely assume that the tournament never actually happened, or the TO is never going to finalize the bracket properly, so stop checking for updates.
+        private static void ReprocessRecentIncompleteTournaments(IConfigurationRoot config)
+        {
+            System.Console.WriteLine("Reprocessing incomplete tournaments from the last 30 days");
+            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
+            var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
+            DataValidator validator = new DataValidator();
+            DataWriter writer = new DataWriter(_db);
+
+            var recentIncompleteTournaments = validator.GetRecentIncompleteTournaments(_db);
+            ParseTournaments(recentIncompleteTournaments, writer, validator);
+        }
+
+        private static void ParseTournaments(List<Tournament> tournaments, DataWriter writer, DataValidator validator)
+        {
+            foreach (var tournament in tournaments)
             {
                 System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
                 writer.WriteTournament(tournament);
