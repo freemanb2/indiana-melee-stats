@@ -1,0 +1,37 @@
+This Elo rating system is based on the FIDE Elo system as specified here: https://handbook.fide.com/chapter/B022022
+
+Tournaments/Sets should be processed in chronological order. Given a tournament, the winner's bracket sets should be processed before the loser's bracket sets.
+
+Initial Rating: 1200
+Rating Range: 1000-3000
+
+Points:
+    Bo3:
+        2-0 = 1.0
+        2-1 = 0.75
+        1-2 = 0.25
+        0-2 = 0
+
+    Bo5:
+        3-0 = 1.0
+        3-1 = 0.85
+        3-2 = 0.7
+        2-3 = 0.3
+        1-3 = 0.15
+        0-3 = 0
+
+    Rationale:  Taking games is worth something, but winning the set is worth more, so bonus points are awarded for a winning set count.
+                Losing a Bo5 in the best case (2-3) is still worth less points than winning a Bo5 in the worst case (2-1). This reinforces the notion that winning sets is worth more than winning games.
+
+
+Calculation:
+    D = difference in rating (up to 400 for calculation)
+    PD = scoring probability given D (from linked table)
+    Rating Change per match = Points - PD
+    Total Rating Change = Sum of rating changes * K
+    Scaling Coefficient (K):
+        - New Player (Less than 30 tracked sets): 40
+        - Experienced Player (30 or more tracked sets): 20
+        - Elite Player (Rating at or above 2400): 10
+
+    Rating change is rounded to the nearest whole number. 0.5 rounds up (even when negative).

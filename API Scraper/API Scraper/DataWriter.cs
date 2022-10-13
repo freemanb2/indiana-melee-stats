@@ -8,11 +8,11 @@ namespace API_Scraper
 {
     public class DataWriter
     {
-        private IMongoCollection<BsonDocument> _tournaments;
-        private IMongoCollection<BsonDocument> _events;
-        private IMongoCollection<BsonDocument> _sets;
-        private IMongoCollection<BsonDocument> _players;
-        private DataValidator _validator;
+        private readonly IMongoCollection<BsonDocument> _tournaments;
+        private readonly IMongoCollection<BsonDocument> _events;
+        private readonly IMongoCollection<BsonDocument> _sets;
+        private readonly IMongoCollection<BsonDocument> _players;
+        private readonly DataValidator _validator;
 
         public DataWriter(IMongoDatabase db)
         {
@@ -137,8 +137,11 @@ namespace API_Scraper
                 {"DisplayScore", set.DisplayScore },
                 {"WinnerId", set.WinnerId },
                 {"LoserId", set.LoserId },
+                {"TotalGames", set.TotalGames },
                 {"PlayerIds", GetPlayerIdsForSet(set.Players) },
-                {"Players", CreateSetPlayers(set.Players) }
+                {"Players", CreateSetPlayers(set.Players) },
+                {"Processed", set.Processed },
+                {"CompletedAt", set.CompletedAt }
             };
         }
 

@@ -1,17 +1,16 @@
 using API_Scraper.API;
 using GraphQL;
 using GraphQL.Client.Abstractions;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace API_Scraper
 {
-    public class SetConsumer
+    public class TournamentHandler
     {
         private readonly IGraphQLClient _client;
-        public SetConsumer(IGraphQLClient client)
+        public TournamentHandler(IGraphQLClient client)
         {
             _client = client;
         }
@@ -109,6 +108,8 @@ namespace API_Scraper
                                     id
                                     displayScore
                                     winnerId
+                                    totalGames
+                                    completedAt
                                     slots {
                                         standing {
                                             entrant {

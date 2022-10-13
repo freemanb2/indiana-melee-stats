@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {}
+    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {
+    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
-        "projectName": "API Scraper",
-        "projectPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+        "projectUniqueName": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj",
+        "projectName": "Elo_Calculator",
+        "projectPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj",
         "packagesPath": "C:\\Users\\bkfreeman\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\obj\\",
+        "outputPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bkfreeman\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -40,14 +40,6 @@
         "netcoreapp3.1": {
           "targetAlias": "netcoreapp3.1",
           "dependencies": {
-            "GraphQL.Client": {
-              "target": "Package",
-              "version": "[3.2.0, )"
-            },
-            "GraphQL.Client.Serializer.Newtonsoft": {
-              "target": "Package",
-              "version": "[3.2.0, )"
-            },
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
               "version": "[6.0.1, )"
@@ -62,7 +54,7 @@
             },
             "MongoDB.Driver": {
               "target": "Package",
-              "version": "[2.16.1, )"
+              "version": "[2.17.1, )"
             }
           },
           "imports": [

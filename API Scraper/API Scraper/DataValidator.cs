@@ -10,7 +10,7 @@ namespace API_Scraper
 {
     public class DataValidator
     {
-        public async Task<List<Tournament>> GetValidTournaments(IMongoDatabase _db, SetConsumer _consumer, int numTournamentsToRecord)
+        public async Task<List<Tournament>> GetValidTournaments(IMongoDatabase _db, TournamentHandler _consumer, int numTournamentsToRecord)
         {
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
             DataWriter writer = new DataWriter(_db);

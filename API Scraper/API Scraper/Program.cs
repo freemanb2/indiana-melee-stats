@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using GraphQL.Client.Http;
 using GraphQL.Client.Serializer.Newtonsoft;
 using System.Threading.Tasks;
@@ -21,7 +19,6 @@ namespace API_Scraper
             DotEnv.Load(dotenv);
 
             var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -34,7 +31,7 @@ namespace API_Scraper
         public async static Task ScrapeStartGGAPI(IConfigurationRoot config){
             var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
-            SetConsumer _consumer = new SetConsumer(client);
+            TournamentHandler _consumer = new TournamentHandler(client);
             MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
             var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
 
@@ -92,12 +89,5 @@ namespace API_Scraper
             }
             System.Console.WriteLine("Done");
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }
