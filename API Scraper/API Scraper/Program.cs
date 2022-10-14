@@ -9,64 +9,72 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System;
 using Elo_Calculator;
+using MongoDB.Bson;
 
 namespace API_Scraper
 {
     public class Program
     {
+        private static DataValidator validator { get; set; }
+        private static DataWriter writer { get; set; }
+        private static IConfigurationRoot config { get; set; }
+        private static IMongoDatabase _db { get; set; } 
+
+
         public static void Main(string[] args)
+        {
+            InitializeDatabase();
+
+            Elo_Calculator.Program.MarkStaleSetsAndRecalculateElos();
+            ReprocessRecentIncompleteTournaments();
+
+            var task = ScrapeStartGGAPI();
+            task.Wait();
+        }
+
+        private static void InitializeDatabase()
         {
             var cd = Environment.CurrentDirectory;
             var projectDirectory = Directory.GetParent(cd).Parent.Parent.FullName;
             var dotenv = Path.Combine(projectDirectory, ".env");
             DotEnv.Load(dotenv);
 
-            var config = new ConfigurationBuilder()
+            config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
 
-            ReprocessRecentIncompleteTournaments(config);
+            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
+            _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
 
-            var task = ScrapeStartGGAPI(config);
-            task.Wait();
+            validator = new DataValidator();
+            writer = new DataWriter(_db);
         }
 
-        public async static Task ScrapeStartGGAPI(IConfigurationRoot config){
+        public async static Task ScrapeStartGGAPI(){
             var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
             TournamentHandler _consumer = new TournamentHandler(client);
-            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
-            var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
-
-            DataValidator validator = new DataValidator();
-            DataWriter writer = new DataWriter(_db);
             List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 20);
 
-            ParseTournaments(validTournaments, writer, validator);
+            ParseTournaments(validTournaments);
         }
 
         // Look for incomplete tournaments that happened in the last 30 days and query for updates that may have occurred.
-        // Context: A tournament could be processed intially while it's still happening, or if the TO hasn't finalized the brackets yet. 
-        //          Tournaments are also picked up in the "Created" state if the query happens on the day they're scheduled to happen. These tournaments are marked as incomplete.
-        //          We want to continuously query for changes to these tournaments over the next 7 days to check and see if the bracket was finalized as some point so we can make sure that we've accounted for all sets that occurred.
-        //          After 7 days, we can safely assume that the tournament never actually happened, or the TO is never going to finalize the bracket properly, so stop checking for updates.
-        private static void ReprocessRecentIncompleteTournaments(IConfigurationRoot config)
+        private static void ReprocessRecentIncompleteTournaments()
         {
-            System.Console.WriteLine("Reprocessing incomplete tournaments from the last 7 days");
-            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
-            var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
-            DataValidator validator = new DataValidator();
-            DataWriter writer = new DataWriter(_db);
-
+            Console.WriteLine("Reprocessing incomplete tournaments from the last 7 days");
             var recentIncompleteTournaments = validator.GetRecentIncompleteTournaments(_db);
-            ParseTournaments(recentIncompleteTournaments, writer, validator);
+            ParseTournaments(recentIncompleteTournaments);
         }
 
-        private static void ParseTournaments(List<Tournament> tournaments, DataWriter writer, DataValidator validator)
+        private static void ParseTournaments(List<Tournament> tournaments)
         {
+            List<BsonDocument> setsToProcess = new List<BsonDocument>();
+            var _sets = _db.GetCollection<BsonDocument>("Sets");
+
             foreach (var tournament in tournaments)
             {
-                System.Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
+                Console.WriteLine("Recording Tournament: " + tournament.TournamentName);
                 writer.WriteTournament(tournament);
                 foreach (Event _event in tournament.Events)
                 {
@@ -77,6 +85,10 @@ namespace API_Scraper
                         {
                             if (validator.IsValidSet(set))
                             {
+                                if (!validator.DocumentExists(_sets, set.Id))
+                                {
+                                    setsToProcess.Add(set.ToBsonDocument());
+                                }
                                 writer.WriteSet(set);
                                 foreach (var player in set.Players)
                                 {
@@ -90,10 +102,11 @@ namespace API_Scraper
                     }
                 }
                 // Recalculate Elo ratings if tournament happened in the last 180 days
-                if (tournament.Date >= DateTime.Now.AddDays(-180))
+                if (tournament.Date >= DateTime.Now.AddDays(-180) && setsToProcess.Count > 0)
                 {
-                    Elo_Calculator.Program.Main(new string[0]);
+                    Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess);
                 }
+                setsToProcess.Clear();
             }
             System.Console.WriteLine("Done");
         }

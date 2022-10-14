@@ -5,50 +5,55 @@ using System.IO;
 
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace Elo_Calculator
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static IMongoCollection<BsonDocument> _sets { get; set; }
+        public static IMongoCollection<BsonDocument> _players { get; set; }
+
+        public static void Main()
         {
-            var cd = Environment.CurrentDirectory;
-            var projectDirectory = Directory.GetParent(cd).Parent.Parent.FullName;
-            var dotenv = Path.Combine(projectDirectory, ".env");
-            DotEnv.Load(dotenv);
-
-            var config = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .Build();
-
-            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
-            IMongoDatabase _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
-
-            var _sets = _db.GetCollection<BsonDocument>("Sets");
-            var _players = _db.GetCollection<BsonDocument>("Players");
-
-            MarkStaleSets(_sets);
-            ResetPlayerElos(_players);
-            List<BsonDocument> setsToProcess = _sets.Find(x => x["Stale"] == false).ToList();
-            setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
-            setsToProcess.ForEach(x => x.Add("Processed", false));
-
-            UpdateRatings(setsToProcess, _sets, _players);
+            InitializeDatabase();
+            MarkStaleSetsAndRecalculateElos();
+            var setsToProcess = GetRecentUnprocessedSets();
+            UpdateRatings(setsToProcess);
         }
 
-        private static void UpdateRatings(List<BsonDocument> setsToProcess, IMongoCollection<BsonDocument> _sets, IMongoCollection<BsonDocument> _players)
+        public static void UpdateRatingsWithSpecificSets(List<BsonDocument> setsToProcess)
+        {
+            InitializeDatabase();
+            setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
+            setsToProcess.ForEach(x => x.Add("Processed", false));
+            UpdateRatings(setsToProcess);
+        }
+
+        public static void MarkStaleSetsAndRecalculateElos()
+        {
+            InitializeDatabase();
+            var update = Builders<BsonDocument>.Update
+                    .Set(p => p["Stale"], true);
+            _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180), update);
+
+            ResetPlayerElos();
+            var setsToProcess = GetRecentUnprocessedSets();
+            UpdateRatings(setsToProcess);
+        }
+
+        private static void UpdateRatings(List<BsonDocument> setsToProcess)
         {
             foreach (var set in setsToProcess)
             {
-                var player1id = set["Players"][0]["_id"];
-                var player2id = set["Players"][1]["_id"];
+                var player1GamerTag = set["Players"][0]["GamerTag"];
+                var player2GamerTag = set["Players"][1]["GamerTag"];
 
-                var player1 = _players.Find(x => x["_id"] == player1id).Single().ToBsonDocument();
-                var player2 = _players.Find(x => x["_id"] == player2id).Single().ToBsonDocument();
+                var player1 = _players.Find(x => x["GamerTag"] == player1GamerTag).Single().ToBsonDocument();
+                var player2 = _players.Find(x => x["GamerTag"] == player2GamerTag).Single().ToBsonDocument();
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
 
-                //Todo - get pd from table
                 Tuple<double, double> scoringProbability = GetScoringProbability(D);
                 double PDH = scoringProbability.Item1;
                 double PDL = scoringProbability.Item2;
@@ -60,7 +65,7 @@ namespace Elo_Calculator
                 string player2SetCountString = displayScore.Substring(displayScore.Length - 1, 1);
                 int player1SetCount = 0;
                 int player2SetCount = 0;
-                if(player1SetCountString == "W")
+                if (player1SetCountString == "W")
                 {
                     player1SetCount = setType == 3 ? 2 : 3;
                     player2SetCount = setType == 3 ? 1 : 2;
@@ -72,45 +77,45 @@ namespace Elo_Calculator
                 }
 
                 int totalGames = player1SetCount + player2SetCount;
-                
+
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                //switch (totalGames)
-                //{
-                //    case 2:
-                //        // 2-0
-                //        {
-                //            winnerPoints = 1.0;
-                //            break;
-                //        }
-                //    case 3:
-                //        // 3-0 or 2-1
-                //        if (setType == 3)
-                //        // 2-1
-                //        {
-                //            winnerPoints = 0.75;
-                //            loserPoints = 0.25;
-                //        }
-                //        else
-                //        // 3-0
-                //        {
-                //            winnerPoints = 1.0;
-                //        }
-                //        break;
-                //    case 4:
-                //        // 3-1
-                //        winnerPoints = 0.85;
-                //        loserPoints = 0.15;
-                //        break;
-                //    case 5:
-                //        // 3-2
-                //        winnerPoints = 0.7;
-                //        loserPoints = 0.3;
-                //        break;
-                //    default:
-                //        break;
-                //}
+                switch (totalGames)
+                {
+                    case 2:
+                        // 2-0
+                        {
+                            winnerPoints = 1.0;
+                            break;
+                        }
+                    case 3:
+                        // 3-0 or 2-1
+                        if (setType == 3)
+                        // 2-1
+                        {
+                            winnerPoints = 0.75;
+                            loserPoints = 0.25;
+                        }
+                        else
+                        // 3-0
+                        {
+                            winnerPoints = 1.0;
+                        }
+                        break;
+                    case 4:
+                        // 3-1
+                        winnerPoints = 0.85;
+                        loserPoints = 0.15;
+                        break;
+                    case 5:
+                        // 3-2
+                        winnerPoints = 0.7;
+                        loserPoints = 0.3;
+                        break;
+                    default:
+                        break;
+                }
 
 
                 // Scale points by PD values
@@ -154,6 +159,10 @@ namespace Elo_Calculator
                 if (player2["Elo"] >= 2400) K2 = 10;
                 else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player2["_id"])).Count < 30) K2 = 40;
 
+                // Scale down rating change if set was in-region
+                var player1RegionalOpponents = GetRegionalOpponents(player1);
+                var player2RegionalOpponents = GetRegionalOpponents(player2);
+
                 // Calculate new ratings
                 int player1RatingChange = (int)Math.Ceiling(player1Points * K1);
                 int player2RatingChange = (int)Math.Ceiling(player2Points * K2);
@@ -174,18 +183,61 @@ namespace Elo_Calculator
             }
         }
 
-        private static void MarkStaleSets(IMongoCollection<BsonDocument> _sets)
-        {
-            var update = Builders<BsonDocument>.Update
-                    .Set(p => p["Stale"], true);
-            _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180), update);
-        }
+        //private static List<BsonDocument> GetRegionalOpponents(BsonDocument player)
+        //{
+        //    //TODO Make this work
 
-        private static void ResetPlayerElos(IMongoCollection<BsonDocument> _players)
+        //    List<BsonDocument> opponents = new List<BsonDocument>();
+
+        //    var recentSets = _sets.Find(x => x["Players"].AsBsonArray.Contains(player["_id"])).SortByDescending(x => x["CompletedAt"]).Limit(100).ToList();
+        //    var distinctOpponents = new List<BsonDocument>();
+        //    foreach (var set in recentSets)
+        //    {
+        //        var opponentId = set["Players"].AsBsonArray.Where(x => x["_id"] != player["_id"]).First();
+        //        if (!distinctOpponents.Contains(opponentId))
+        //        {
+        //            distinctOpponents.Add(opponentId);
+        //        }
+        //    }
+
+        //    Dictionary<string, int> setCounts = new Dictionary<string, int>();
+        //    recentSets.
+
+        //    return opponents;
+        //}
+
+        private static void ResetPlayerElos()
         {
             var update = Builders<BsonDocument>.Update
                     .Set(p => p["Elo"], 1200);
             _players.UpdateMany(x => true, update);
+        }
+
+        private static List<BsonDocument> GetRecentUnprocessedSets()
+        {
+            List<BsonDocument> setsToProcess = _sets.Find(x => x["Stale"] == false).ToList();
+            setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
+            setsToProcess.ForEach(x => x.Add("Processed", false));
+
+            return setsToProcess;
+        }
+
+        private static void InitializeDatabase()
+        {
+            var cd = Environment.CurrentDirectory;
+            var projectDirectory = Directory.GetParent(cd).Parent.Parent.FullName;
+            var dotenv = Path.Combine(projectDirectory, ".env");
+            DotEnv.Load(dotenv);
+
+            var config = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .Build();
+
+            MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
+            IMongoDatabase _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
+
+            _sets = _db.GetCollection<BsonDocument>("Sets");
+            _players = _db.GetCollection<BsonDocument>("Players");
         }
 
         private static Tuple<double, double> GetScoringProbability(int eloDiff)

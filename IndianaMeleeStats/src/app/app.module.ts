@@ -10,6 +10,7 @@ import { EventComponent } from './event/event.component';
 import { SetComponent } from './set/set.component';
 import { PlayerComponent } from './player/player.component';
 import { HeadToHeadComponent } from './head-to-head/head-to-head.component';
+import { RankingsComponent } from './rankings/rankings.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { HeadToHeadComponent } from './head-to-head/head-to-head.component';
     EventComponent,
     SetComponent,
     PlayerComponent,
-    HeadToHeadComponent
+    HeadToHeadComponent,
+    RankingsComponent
   ],
   imports: [
     BrowserModule,

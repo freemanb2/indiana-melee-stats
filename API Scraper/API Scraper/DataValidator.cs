@@ -13,7 +13,6 @@ namespace API_Scraper
         public async Task<List<Tournament>> GetValidTournaments(IMongoDatabase _db, TournamentHandler _consumer, int numTournamentsToRecord)
         {
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
-            DataWriter writer = new DataWriter(_db);
 
             List<string> recentTournamentIds = await _consumer.GetRecentIndianaTournamentIds(500);
 

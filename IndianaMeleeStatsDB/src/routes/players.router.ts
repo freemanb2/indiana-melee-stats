@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { Int32, ObjectId } from "mongodb";
 import { collections } from "../services/database.service";
 import Player from "../models/player";
+import { sortBy } from "lodash";
 
 export const playersRouter = express.Router();
 
@@ -12,6 +13,31 @@ playersRouter.get("/", async (req: Request, res: Response) => {
        const players = (await collections.players?.find({}).toArray()) as unknown as Player[];
 
         res.status(200).header("Access-Control-Allow-Origin", "*").send(players);
+    } catch (error:any) {
+        res.status(500).send(error.message);
+    }
+});
+
+playersRouter.get("/rankings", async (req: Request, res: Response) => {
+    try {
+        const query = { Elo: { $gte: 1000 } };
+        const players = (await collections.players.find(query).toArray()) as unknown as Player[];
+
+        var playersWithSufficientSets = new Array<Player>();
+        await Promise.all(players.map(async (player) => {
+            var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players._id": player._id, "Events.Sets.Stale": false }).toArray()).length;
+            if (tournamentCount >= 3){
+                playersWithSufficientSets.push(player);
+            }
+        }));
+
+        playersWithSufficientSets = sortBy(playersWithSufficientSets, [player => -player.Elo]);
+
+        if (playersWithSufficientSets) {
+            res.status(200).header("Access-Control-Allow-Origin", "*").send(playersWithSufficientSets);
+        } else {
+            throw new Error();
+        }
     } catch (error:any) {
         res.status(500).send(error.message);
     }
