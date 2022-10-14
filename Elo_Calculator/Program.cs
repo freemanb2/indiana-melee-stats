@@ -8,12 +8,13 @@ using System;
 
 namespace Elo_Calculator
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var root = Directory.GetCurrentDirectory();
-            var dotenv = Path.Combine(root, ".env");
+            var cd = Environment.CurrentDirectory;
+            var projectDirectory = Directory.GetParent(cd).Parent.Parent.FullName;
+            var dotenv = Path.Combine(projectDirectory, ".env");
             DotEnv.Load(dotenv);
 
             var config = new ConfigurationBuilder()
@@ -26,14 +27,18 @@ namespace Elo_Calculator
             var _sets = _db.GetCollection<BsonDocument>("Sets");
             var _players = _db.GetCollection<BsonDocument>("Players");
 
-            var unprocessedSets = _sets.Find(x => x["Processed"] == false).ToList();
+            MarkStaleSets(_sets);
+            ResetPlayerElos(_players);
+            List<BsonDocument> setsToProcess = _sets.Find(x => x["Stale"] == false).ToList();
+            setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
+            setsToProcess.ForEach(x => x.Add("Processed", false));
 
-            UpdateRatings(unprocessedSets, _sets, _players);
+            UpdateRatings(setsToProcess, _sets, _players);
         }
 
-        private static void UpdateRatings(List<BsonDocument> unprocessedSets, IMongoCollection<BsonDocument> _sets, IMongoCollection<BsonDocument> _players)
+        private static void UpdateRatings(List<BsonDocument> setsToProcess, IMongoCollection<BsonDocument> _sets, IMongoCollection<BsonDocument> _players)
         {
-            foreach (var set in unprocessedSets)
+            foreach (var set in setsToProcess)
             {
                 var player1id = set["Players"][0]["_id"];
                 var player2id = set["Players"][1]["_id"];
@@ -50,36 +55,63 @@ namespace Elo_Calculator
 
                 // Determine the points
                 string displayScore = set["DisplayScore"].AsString;
-                int totalGames = set["TotalGames"].AsInt32;
-                double winnerPoints = 0;
+                int setType = set["TotalGames"].AsInt32;
+                string player1SetCountString = displayScore.Substring(displayScore.IndexOf(" - ") - 1, 1);
+                string player2SetCountString = displayScore.Substring(displayScore.Length - 1, 1);
+                int player1SetCount = 0;
+                int player2SetCount = 0;
+                if(player1SetCountString == "W")
+                {
+                    player1SetCount = setType == 3 ? 2 : 3;
+                    player2SetCount = setType == 3 ? 1 : 2;
+                }
+                else
+                {
+                    player1SetCount = int.Parse(player1SetCountString);
+                    player2SetCount = int.Parse(player2SetCountString);
+                }
+
+                int totalGames = player1SetCount + player2SetCount;
+                
+                double winnerPoints = 1;
                 double loserPoints = 0;
 
-                switch (totalGames)
-                {
-                    case 3:
-                        if (displayScore.EndsWith("1") || displayScore.EndsWith("2"))
-                        // Bo3
-                        {
-                            winnerPoints = 0.75;
-                            loserPoints = 0.25;
-                        }
-                        else
-                        // Bo5
-                        {
-                            winnerPoints = 1.0;
-                        }
-                        break;
-                    case 4:
-                        winnerPoints = 0.85;
-                        loserPoints = 0.15;
-                        break;
-                    case 5:
-                        winnerPoints = 0.7;
-                        loserPoints = 0.3;
-                        break;
-                    default:
-                        break;
-                }
+                //switch (totalGames)
+                //{
+                //    case 2:
+                //        // 2-0
+                //        {
+                //            winnerPoints = 1.0;
+                //            break;
+                //        }
+                //    case 3:
+                //        // 3-0 or 2-1
+                //        if (setType == 3)
+                //        // 2-1
+                //        {
+                //            winnerPoints = 0.75;
+                //            loserPoints = 0.25;
+                //        }
+                //        else
+                //        // 3-0
+                //        {
+                //            winnerPoints = 1.0;
+                //        }
+                //        break;
+                //    case 4:
+                //        // 3-1
+                //        winnerPoints = 0.85;
+                //        loserPoints = 0.15;
+                //        break;
+                //    case 5:
+                //        // 3-2
+                //        winnerPoints = 0.7;
+                //        loserPoints = 0.3;
+                //        break;
+                //    default:
+                //        break;
+                //}
+
 
                 // Scale points by PD values
                 double player1Points = 0;
@@ -89,38 +121,38 @@ namespace Elo_Calculator
                     if (player1["Elo"] >= player2["Elo"])
                     {
                         // Player 1 won and was higher rated
-                        player1Points = (1 - PDH) * winnerPoints;
-                        player2Points = (1 - PDL) * loserPoints;
+                        player1Points = (winnerPoints - PDH);
+                        player2Points = (loserPoints - PDL);
                     }
                     else
                     {
                         // Player 1 won and was lower rated
-                        player1Points = (1 - PDL) * winnerPoints;
-                        player2Points = (1 - PDH) * loserPoints;
+                        player1Points = (winnerPoints - PDL);
+                        player2Points = (loserPoints - PDH);
                     }
 
                 }
                 else if (player1["Elo"] >= player2["Elo"])
                 {
                     // Player 2 won and was lower rated
-                    player1Points = (1 - PDH) * loserPoints;
-                    player2Points = (1 - PDL) * winnerPoints;
+                    player1Points = (loserPoints - PDH);
+                    player2Points = (winnerPoints - PDL);
                 }
                 else
                 {
                     // Player 2 won and was higher rated
-                    player1Points = (1 - PDL) * loserPoints;
-                    player2Points = (1 - PDH) * winnerPoints;
+                    player1Points = (loserPoints - PDL);
+                    player2Points = (winnerPoints - PDH);
                 }
 
                 // Determine scaling coefficient for each player
                 int K1 = 20;
                 if (player1["Elo"] >= 2400) K1 = 10;
-                else if (_sets.CountDocuments(x => x["_id"] == player1["_id"]) < 30) K1 = 40;
+                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player1["_id"])).Count < 30) K1 = 40;
 
                 int K2 = 20;
                 if (player2["Elo"] >= 2400) K2 = 10;
-                else if (_sets.CountDocuments(x => x["_id"] == player2["_id"]) < 30) K2 = 40;
+                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player2["_id"])).Count < 30) K2 = 40;
 
                 // Calculate new ratings
                 int player1RatingChange = (int)Math.Ceiling(player1Points * K1);
@@ -138,11 +170,22 @@ namespace Elo_Calculator
                     .Set(p => p["Elo"], player2Rating);
                 _players.UpdateOne(x => x["_id"] == player2["_id"], update);
 
-                // Mark set as processed
-                update = Builders<BsonDocument>.Update
-                    .Set(p => p["Processed"], true);
-                _sets.UpdateOne(x => x["_id"] == set["_id"], update);
+                set.Set("Processed", true);
             }
+        }
+
+        private static void MarkStaleSets(IMongoCollection<BsonDocument> _sets)
+        {
+            var update = Builders<BsonDocument>.Update
+                    .Set(p => p["Stale"], true);
+            _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180), update);
+        }
+
+        private static void ResetPlayerElos(IMongoCollection<BsonDocument> _players)
+        {
+            var update = Builders<BsonDocument>.Update
+                    .Set(p => p["Elo"], 1200);
+            _players.UpdateMany(x => true, update);
         }
 
         private static Tuple<double, double> GetScoringProbability(int eloDiff)

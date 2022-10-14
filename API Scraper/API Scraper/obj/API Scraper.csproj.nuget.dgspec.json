@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {}
+    "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {
+    "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+        "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
         "projectName": "API Scraper",
-        "projectPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
-        "packagesPath": "C:\\Users\\bkfreeman\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\API Scraper\\API Scraper\\obj\\",
+        "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\API Scraper.csproj",
+        "packagesPath": "C:\\Users\\Brandon\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\API Scraper\\API Scraper\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\bkfreeman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Brandon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -27,7 +31,11 @@
         "frameworks": {
           "netcoreapp3.1": {
             "targetAlias": "netcoreapp3.1",
-            "projectReferences": {}
+            "projectReferences": {
+              "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj": {
+                "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -62,7 +70,7 @@
             },
             "MongoDB.Driver": {
               "target": "Package",
-              "version": "[2.16.1, )"
+              "version": "[2.17.1, )"
             }
           },
           "imports": [
@@ -80,7 +88,83 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.413\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj",
+        "projectName": "Elo_Calculator",
+        "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj",
+        "packagesPath": "C:\\Users\\Brandon\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Brandon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
+          "dependencies": {
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "Microsoft.Extensions.Configuration.EnvironmentVariables": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[2.17.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
         }
       }
     }

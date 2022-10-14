@@ -12,7 +12,11 @@
 	<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.16.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.17.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Elo_Calculator\Elo_Calculator.csproj" />
   </ItemGroup>
 
 </Project>

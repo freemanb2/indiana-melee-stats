@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj": {}
+    "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj": {
+    "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj",
+        "projectUniqueName": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj",
         "projectName": "Elo_Calculator",
-        "projectPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\Elo_Calculator.csproj",
-        "packagesPath": "C:\\Users\\bkfreeman\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bkfreeman\\Documents\\Code\\smash-stats\\Elo_Calculator\\obj\\",
+        "projectPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\Elo_Calculator.csproj",
+        "packagesPath": "C:\\Users\\Brandon\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Brandon\\Documents\\Code\\indiana-melee-stats\\Elo_Calculator\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\bkfreeman\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Brandon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -72,7 +76,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.413\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.300\\RuntimeIdentifierGraph.json"
         }
       }
     }

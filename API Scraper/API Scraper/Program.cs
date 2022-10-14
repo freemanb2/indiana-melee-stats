@@ -7,6 +7,8 @@ using MongoDB.Driver;
 using API_Scraper.Models;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System;
+using Elo_Calculator;
 
 namespace API_Scraper
 {
@@ -14,8 +16,9 @@ namespace API_Scraper
     {
         public static void Main(string[] args)
         {
-            var root = Directory.GetCurrentDirectory();
-            var dotenv = Path.Combine(root, ".env");
+            var cd = Environment.CurrentDirectory;
+            var projectDirectory = Directory.GetParent(cd).Parent.Parent.FullName;
+            var dotenv = Path.Combine(projectDirectory, ".env");
             DotEnv.Load(dotenv);
 
             var config = new ConfigurationBuilder()
@@ -45,11 +48,11 @@ namespace API_Scraper
         // Look for incomplete tournaments that happened in the last 30 days and query for updates that may have occurred.
         // Context: A tournament could be processed intially while it's still happening, or if the TO hasn't finalized the brackets yet. 
         //          Tournaments are also picked up in the "Created" state if the query happens on the day they're scheduled to happen. These tournaments are marked as incomplete.
-        //          We want to continuously query for changes to these tournaments over the next 30 days to check and see if the bracket was finalized as some point so we can make sure that we've accounted for all sets that occurred.
-        //          After 30 days, we can safely assume that the tournament never actually happened, or the TO is never going to finalize the bracket properly, so stop checking for updates.
+        //          We want to continuously query for changes to these tournaments over the next 7 days to check and see if the bracket was finalized as some point so we can make sure that we've accounted for all sets that occurred.
+        //          After 7 days, we can safely assume that the tournament never actually happened, or the TO is never going to finalize the bracket properly, so stop checking for updates.
         private static void ReprocessRecentIncompleteTournaments(IConfigurationRoot config)
         {
-            System.Console.WriteLine("Reprocessing incomplete tournaments from the last 30 days");
+            System.Console.WriteLine("Reprocessing incomplete tournaments from the last 7 days");
             MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
             var _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
             DataValidator validator = new DataValidator();
@@ -85,6 +88,11 @@ namespace API_Scraper
                             }
                         }
                     }
+                }
+                // Recalculate Elo ratings if tournament happened in the last 180 days
+                if (tournament.Date >= DateTime.Now.AddDays(-180))
+                {
+                    Elo_Calculator.Program.Main(new string[0]);
                 }
             }
             System.Console.WriteLine("Done");

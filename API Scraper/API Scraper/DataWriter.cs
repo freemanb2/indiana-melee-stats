@@ -73,14 +73,14 @@ namespace API_Scraper
             if (_validator.DocumentExists(_players, _player.Id)) return;
 
             var playerDocument = CreatePlayerDocument(_player);
-            if(!_validator.DocumentExists(_players, _player.Id)){
+            if(!_validator.DocumentExists(_players, playerDocument["_id"].ToString())){
                 try
                 {
                     _players.InsertOne(playerDocument);
                 }
                 catch (System.Exception e)
                 {
-                    System.Console.WriteLine($"Exception while writing Player with id {_player.Id} and gamerTag {_player.GamerTag}: ", e.Message);
+                    System.Console.WriteLine($"Exception while writing Player with id {playerDocument["_id"].ToString()} and gamerTag {playerDocument["GamerTag"].ToString()}: ", e.Message);
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace API_Scraper
                 {"TotalGames", set.TotalGames },
                 {"PlayerIds", GetPlayerIdsForSet(set.Players) },
                 {"Players", CreateSetPlayers(set.Players) },
-                {"Processed", set.Processed },
+                {"Stale", set.Stale },
                 {"CompletedAt", set.CompletedAt }
             };
         }
@@ -167,6 +167,12 @@ namespace API_Scraper
 
         private BsonDocument CreatePlayerDocument(Player player)
         {
+            BsonDocument existingPlayer = _players.Find(x => x["GamerTag"] == player.GamerTag).SingleOrDefault();
+            if (existingPlayer != null)
+            {
+                return existingPlayer.ToBsonDocument();
+            }
+
             return new BsonDocument {
                 {"_id", player.Id },
                 {"Elo", player.Elo },

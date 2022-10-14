@@ -42,7 +42,7 @@ namespace API_Scraper
         public List<Tournament> GetRecentIncompleteTournaments(IMongoDatabase _db)
         {
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
-            var recentIncompleteTournamentDocuments = _tournaments.Find(x => x["Completed"] == false && x["Date"] >= DateTime.Now.AddDays(-30)).ToList();
+            var recentIncompleteTournamentDocuments = _tournaments.Find(x => x["Completed"] == false && x["Date"] >= DateTime.Now.AddDays(-7)).ToList();
             var recentIncompleteTournaments = new List<Tournament>();
 
             foreach(var document in recentIncompleteTournamentDocuments)

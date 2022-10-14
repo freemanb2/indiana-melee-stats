@@ -12,7 +12,7 @@ namespace API_Scraper.Models
         public string LoserId { get; set; }
         public int TotalGames { get; set; }
         public List<Player> Players { get; set; }
-        public bool Processed { get; set; }
+        public bool Stale { get; set; }
         public DateTime CompletedAt { get; set; }
 
         public Set(API.Set API_Set)
@@ -27,7 +27,7 @@ namespace API_Scraper.Models
             WinnerId = API_Set.Slots.Where(slot => slot.Standing.Entrant.Id == API_Set.WinnerId).FirstOrDefault().Standing.Entrant.Participants[0].Player.Id.ToString();
             LoserId = WinnerId.ToString() == Players[0].Id ? Players[1].Id : Players[0].Id;
             TotalGames = API_Set.TotalGames;
-            Processed = false;
+            Stale = false;
             CompletedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(API_Set.CompletedAt);
         }
 
@@ -39,7 +39,7 @@ namespace API_Scraper.Models
             LoserId = set.GetValue("LoserId").ToString();
             TotalGames = set.GetValue("TotalGames").ToInt32();
             Players = new List<Player>();
-            Processed = set.GetValue("Processed").ToBoolean();
+            Stale = set.GetValue("Stale").ToBoolean();
 
             var documentPlayers = set.GetValue("Players").AsBsonArray;
             foreach (var player in documentPlayers)

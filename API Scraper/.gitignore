@@ -1,2 +1,4 @@
 *.env
 Debug/
+obj/
+.vs/
