@@ -18,7 +18,7 @@ namespace Elo_Calculator
         {
             InitializeDatabase();
             MarkStaleSetsAndRecalculateElos();
-            var setsToProcess = GetRecentUnprocessedSets();
+            var setsToProcess = GetRecentSets();
             UpdateRatings(setsToProcess);
         }
 
@@ -35,12 +35,12 @@ namespace Elo_Calculator
             InitializeDatabase();
             var update = Builders<BsonDocument>.Update
                     .Set(p => p["Stale"], true);
-            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180) && x["Stale"] == false, update).ModifiedCount;
+            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddYears(-1) && x["Stale"] == false, update).ModifiedCount;
 
             if(updatedCount > 0)
             {
                 ResetPlayerElos();
-                var setsToProcess = GetRecentUnprocessedSets();
+                var setsToProcess = GetRecentSets();
                 UpdateRatings(setsToProcess);
             }
         }
@@ -84,41 +84,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                //switch (totalGames)
-                //{
-                //    case 2:
-                //        // 2-0
-                //        {
-                //            winnerPoints = 1.0;
-                //            break;
-                //        }
-                //    case 3:
-                //        // 3-0 or 2-1
-                //        if (setType == 3)
-                //        // 2-1
-                //        {
-                //            winnerPoints = 0.75;
-                //            loserPoints = 0.25;
-                //        }
-                //        else
-                //        // 3-0
-                //        {
-                //            winnerPoints = 1.0;
-                //        }
-                //        break;
-                //    case 4:
-                //        // 3-1
-                //        winnerPoints = 0.85;
-                //        loserPoints = 0.15;
-                //        break;
-                //    case 5:
-                //        // 3-2
-                //        winnerPoints = 0.7;
-                //        loserPoints = 0.3;
-                //        break;
-                //    default:
-                //        break;
-                //}
+                switch (totalGames)
+                {
+                    case 2:
+                        // 2-0
+                        {
+                            winnerPoints = 1.0;
+                            break;
+                        }
+                    case 3:
+                        // 3-0 or 2-1
+                        if (setType == 3)
+                        // 2-1
+                        {
+                            winnerPoints = 0.75;
+                            loserPoints = 0.25;
+                        }
+                        else
+                        // 3-0
+                        {
+                            winnerPoints = 1.0;
+                        }
+                        break;
+                    case 4:
+                        // 3-1
+                        winnerPoints = 0.85;
+                        loserPoints = 0.15;
+                        break;
+                    case 5:
+                        // 3-2
+                        winnerPoints = 0.7;
+                        loserPoints = 0.3;
+                        break;
+                    default:
+                        break;
+                }
 
 
                 // Scale points by PD values
@@ -165,21 +165,16 @@ namespace Elo_Calculator
                 double player1RegionalScale = 1.0;
                 double player2RegionalScale = 1.0;
 
-                if (player1["GamerTag"] == "mackey" || player2["GamerTag"] == "mackey")
-                {
-                    var test = 1;
-                }
-
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
                 if (player1RegionalOpponents.Contains(player2["_id"].AsString))
                 {
-                    player1RegionalScale = 0.1;
+                    player1RegionalScale = 0.5;
                 }
 
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
                 if (player2RegionalOpponents.Contains(player1["_id"].AsString))
                 {
-                    player2RegionalScale = 0.1;
+                    player1RegionalScale = 0.5;
                 }
 
                 // Calculate new ratings
@@ -228,8 +223,9 @@ namespace Elo_Calculator
 
             foreach(var opponent in setCounts)
             {
-                if (opponent.Item2 >= 3) opponentIds.Add(opponent.Item1);
+                if (opponent.Item2 >= 4) opponentIds.Add(opponent.Item1);
 
+                if (opponentIds.Count() == 10) break;
             }
 
             return opponentIds;
@@ -242,7 +238,7 @@ namespace Elo_Calculator
             _players.UpdateMany(x => true, update);
         }
 
-        private static List<BsonDocument> GetRecentUnprocessedSets()
+        private static List<BsonDocument> GetRecentSets()
         {
             List<BsonDocument> setsToProcess = _sets.Find(x => x["Stale"] == false).ToList();
             setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));

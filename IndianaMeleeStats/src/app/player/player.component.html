@@ -1,1 +1,8 @@
-<p>player works!</p>
+<div class="player">
+    <span>Player 1 <input #player /> </span>
+    <button (click)="getSets(player.value)">Get Results</button>
+    <p>Player: {{player.value}}</p>
+    <div *ngFor="let set of sets">
+        {{set.DisplayScore}}
+    </div>
+</div>

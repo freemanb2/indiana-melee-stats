@@ -102,7 +102,7 @@ namespace API_Scraper
                     }
                 }
                 // Recalculate Elo ratings if tournament happened in the last 180 days
-                if (tournament.Date >= DateTime.Now.AddDays(-180) && setsToProcess.Count > 0)
+                if (tournament.Date >= DateTime.Now.AddYears(-1) && setsToProcess.Count > 0)
                 {
                     Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess);
                 }

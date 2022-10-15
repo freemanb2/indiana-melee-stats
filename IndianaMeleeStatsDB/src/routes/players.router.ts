@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { Int32, ObjectId } from "mongodb";
 import { collections } from "../services/database.service";
 import Player from "../models/player";
+import Set from "../models/set";
 import { sortBy } from "lodash";
 
 export const playersRouter = express.Router();
@@ -15,6 +16,21 @@ playersRouter.get("/", async (req: Request, res: Response) => {
         res.status(200).header("Access-Control-Allow-Origin", "*").send(players);
     } catch (error:any) {
         res.status(500).send(error.message);
+    }
+});
+
+playersRouter.get("/sets/:gamerTag", async (req: Request, res: Response) => {
+    var gamerTag = req?.params?.gamerTag;
+
+    try {
+        const query = { "Players.GamerTag": { $regex: new RegExp(gamerTag), $options: "i" }, "Stale": false };
+        const sets = (await collections.sets.find(query).toArray()) as unknown as Set[];
+
+        if (sets) {
+            res.status(200).header("Access-Control-Allow-Origin", "*").send(sets);
+        }
+    } catch (error) {
+        res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
     }
 });
 
