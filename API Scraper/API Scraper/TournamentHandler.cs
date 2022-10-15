@@ -32,6 +32,10 @@ namespace API_Scraper
                         Event e = response.Data.Tournament.Events.Where(x => x.Name == t.Name).Single();
                         t.Sets.Nodes.AddRange(e.Sets.Nodes);
                     }
+                    if (response.Data.Tournament.Events.All(e => e.Sets.Nodes.Count < limit))
+                    {
+                        break;
+                    }
                     response = await GetNextTournamentResultsPage(tournamentId, page++, limit);
                 }
             }

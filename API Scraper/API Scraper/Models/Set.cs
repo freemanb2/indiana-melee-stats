@@ -27,8 +27,8 @@ namespace API_Scraper.Models
             WinnerId = API_Set.Slots.Where(slot => slot.Standing.Entrant.Id == API_Set.WinnerId).FirstOrDefault().Standing.Entrant.Participants[0].Player.Id.ToString();
             LoserId = WinnerId.ToString() == Players[0].Id ? Players[1].Id : Players[0].Id;
             TotalGames = API_Set.TotalGames;
-            Stale = false;
             CompletedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(API_Set.CompletedAt);
+            Stale = CompletedAt < DateTime.Now.AddDays(-180);
         }
 
         public Set(BsonDocument set)

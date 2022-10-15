@@ -38,6 +38,20 @@ namespace API_Scraper
             }
         }
 
+        public void WriteInvalidTournament(Tournament _tournament)
+        {
+            var tournamentDocument = new BsonDocument
+            {
+                {"_id", _tournament.Id},
+                {"TournamentName", _tournament.TournamentName},
+                {"Link", _tournament.Link },
+                {"Date", _tournament.Date },
+                {"Valid", false }
+            };
+
+            _tournaments.InsertOne(tournamentDocument);
+        }
+
         public void WriteEvent(Event _event)
         {
             if (_validator.DocumentExists(_events, _event.Id)) return;

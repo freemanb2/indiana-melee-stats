@@ -35,11 +35,14 @@ namespace Elo_Calculator
             InitializeDatabase();
             var update = Builders<BsonDocument>.Update
                     .Set(p => p["Stale"], true);
-            _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180), update);
+            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddDays(-180) && x["Stale"] == false, update).ModifiedCount;
 
-            ResetPlayerElos();
-            var setsToProcess = GetRecentUnprocessedSets();
-            UpdateRatings(setsToProcess);
+            if(updatedCount > 0)
+            {
+                ResetPlayerElos();
+                var setsToProcess = GetRecentUnprocessedSets();
+                UpdateRatings(setsToProcess);
+            }
         }
 
         private static void UpdateRatings(List<BsonDocument> setsToProcess)
@@ -81,41 +84,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                switch (totalGames)
-                {
-                    case 2:
-                        // 2-0
-                        {
-                            winnerPoints = 1.0;
-                            break;
-                        }
-                    case 3:
-                        // 3-0 or 2-1
-                        if (setType == 3)
-                        // 2-1
-                        {
-                            winnerPoints = 0.75;
-                            loserPoints = 0.25;
-                        }
-                        else
-                        // 3-0
-                        {
-                            winnerPoints = 1.0;
-                        }
-                        break;
-                    case 4:
-                        // 3-1
-                        winnerPoints = 0.85;
-                        loserPoints = 0.15;
-                        break;
-                    case 5:
-                        // 3-2
-                        winnerPoints = 0.7;
-                        loserPoints = 0.3;
-                        break;
-                    default:
-                        break;
-                }
+                //switch (totalGames)
+                //{
+                //    case 2:
+                //        // 2-0
+                //        {
+                //            winnerPoints = 1.0;
+                //            break;
+                //        }
+                //    case 3:
+                //        // 3-0 or 2-1
+                //        if (setType == 3)
+                //        // 2-1
+                //        {
+                //            winnerPoints = 0.75;
+                //            loserPoints = 0.25;
+                //        }
+                //        else
+                //        // 3-0
+                //        {
+                //            winnerPoints = 1.0;
+                //        }
+                //        break;
+                //    case 4:
+                //        // 3-1
+                //        winnerPoints = 0.85;
+                //        loserPoints = 0.15;
+                //        break;
+                //    case 5:
+                //        // 3-2
+                //        winnerPoints = 0.7;
+                //        loserPoints = 0.3;
+                //        break;
+                //    default:
+                //        break;
+                //}
 
 
                 // Scale points by PD values
@@ -135,7 +138,6 @@ namespace Elo_Calculator
                         player1Points = (winnerPoints - PDL);
                         player2Points = (loserPoints - PDH);
                     }
-
                 }
                 else if (player1["Elo"] >= player2["Elo"])
                 {
@@ -160,12 +162,29 @@ namespace Elo_Calculator
                 else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player2["_id"])).Count < 30) K2 = 40;
 
                 // Scale down rating change if set was in-region
+                double player1RegionalScale = 1.0;
+                double player2RegionalScale = 1.0;
+
+                if (player1["GamerTag"] == "mackey" || player2["GamerTag"] == "mackey")
+                {
+                    var test = 1;
+                }
+
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
+                if (player1RegionalOpponents.Contains(player2["_id"].AsString))
+                {
+                    player1RegionalScale = 0.1;
+                }
+
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
+                if (player2RegionalOpponents.Contains(player1["_id"].AsString))
+                {
+                    player2RegionalScale = 0.1;
+                }
 
                 // Calculate new ratings
-                int player1RatingChange = (int)Math.Ceiling(player1Points * K1);
-                int player2RatingChange = (int)Math.Ceiling(player2Points * K2);
+                int player1RatingChange = (int)Math.Ceiling(player1Points * K1 * player1RegionalScale);
+                int player2RatingChange = (int)Math.Ceiling(player2Points * K2 * player2RegionalScale);
 
                 int player1Rating = player1["Elo"].AsInt32 + player1RatingChange;
                 int player2Rating = player2["Elo"].AsInt32 + player2RatingChange;
@@ -183,28 +202,38 @@ namespace Elo_Calculator
             }
         }
 
-        //private static List<BsonDocument> GetRegionalOpponents(BsonDocument player)
-        //{
-        //    //TODO Make this work
+        private static List<string> GetRegionalOpponents(BsonDocument player)
+        {
+            // Find top 100 most recent sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
+            List<string> opponentIds = new List<string>();
 
-        //    List<BsonDocument> opponents = new List<BsonDocument>();
+            var filter = Builders<BsonDocument>.Filter.Eq("Players._id", player["_id"]);
+            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).Limit(100).ToList();
+            var setCounts = new List<Tuple<string, int>>();
+            foreach (var set in recentSets)
+            {
+                var opponentId = set["Players"].AsBsonArray.Where(x => x["_id"] != player["_id"]).First().AsBsonDocument["_id"];
+                if (!setCounts.Any(x => x.Item1 == opponentId.AsString))
+                {
+                    setCounts.Add(new Tuple<string, int>(opponentId.AsString, 1));
+                }
+                else
+                {
+                    var index = setCounts.FindIndex(x => x.Item1 == opponentId);
+                    setCounts[index] = new Tuple<string, int>(opponentId.AsString, setCounts[index].Item2 + 1);
+                }
+            }
 
-        //    var recentSets = _sets.Find(x => x["Players"].AsBsonArray.Contains(player["_id"])).SortByDescending(x => x["CompletedAt"]).Limit(100).ToList();
-        //    var distinctOpponents = new List<BsonDocument>();
-        //    foreach (var set in recentSets)
-        //    {
-        //        var opponentId = set["Players"].AsBsonArray.Where(x => x["_id"] != player["_id"]).First();
-        //        if (!distinctOpponents.Contains(opponentId))
-        //        {
-        //            distinctOpponents.Add(opponentId);
-        //        }
-        //    }
+            setCounts.OrderByDescending(x => x.Item2);
 
-        //    Dictionary<string, int> setCounts = new Dictionary<string, int>();
-        //    recentSets.
+            foreach(var opponent in setCounts)
+            {
+                if (opponent.Item2 >= 3) opponentIds.Add(opponent.Item1);
 
-        //    return opponents;
-        //}
+            }
+
+            return opponentIds;
+        }
 
         private static void ResetPlayerElos()
         {
