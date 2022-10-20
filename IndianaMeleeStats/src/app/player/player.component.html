@@ -1,8 +1,27 @@
-<div class="player">
-    <span>Player 1 <input #player /> </span>
-    <button (click)="getSets(player.value)">Get Results</button>
-    <p>Player: {{player.value}}</p>
-    <div *ngFor="let set of sets">
-        {{set.DisplayScore}}
+<div class="container">
+    <div class="row">
+        <div class="col-xs">
+            <span>Player <input #player (keyup.enter)="getSets(player.value)" /> </span>
+            &nbsp;<button (click)="getSets(player.value)">Get Results</button>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col">
+            <h3>Tournament Results</h3>
+            <div *ngFor="let tournament of tournaments">
+                <h4>{{tournament.tournamentName}}</h4>
+                <div *ngFor="let set of tournament.tournamentSets">
+                    {{set.DisplayScore}}
+                </div>
+                <br />
+            </div>
+        </div>
+        <div class="col">
+            <h3>Head-To-Heads</h3>
+            <div *ngFor="let matchup of headToHeads">
+                {{matchup[0]}} ({{matchup[1]}}W-{{matchup[2]}}L)
+            </div>
+        </div>
     </div>
 </div>

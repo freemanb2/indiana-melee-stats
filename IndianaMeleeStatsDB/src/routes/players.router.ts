@@ -1,9 +1,11 @@
-import express, { Request, Response } from "express";
+import express, { json, Request, Response } from "express";
 import { Int32, ObjectId } from "mongodb";
 import { collections } from "../services/database.service";
 import Player from "../models/player";
 import Set from "../models/set";
-import { sortBy } from "lodash";
+import Tournament from "../models/tournament";
+import Event from "../models/event";
+import { sortBy, forEach } from "lodash";
 
 export const playersRouter = express.Router();
 
@@ -16,21 +18,6 @@ playersRouter.get("/", async (req: Request, res: Response) => {
         res.status(200).header("Access-Control-Allow-Origin", "*").send(players);
     } catch (error:any) {
         res.status(500).send(error.message);
-    }
-});
-
-playersRouter.get("/sets/:gamerTag", async (req: Request, res: Response) => {
-    var gamerTag = req?.params?.gamerTag;
-
-    try {
-        const query = { "Players.GamerTag": { $regex: new RegExp(gamerTag), $options: "i" }, "Stale": false };
-        const sets = (await collections.sets.find(query).toArray()) as unknown as Set[];
-
-        if (sets) {
-            res.status(200).header("Access-Control-Allow-Origin", "*").send(sets);
-        }
-    } catch (error) {
-        res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
     }
 });
 
@@ -56,6 +43,41 @@ playersRouter.get("/rankings", async (req: Request, res: Response) => {
         }
     } catch (error:any) {
         res.status(500).send(error.message);
+    }
+});
+
+playersRouter.get("/:gamerTag/headToHeads", async (req: Request, res: Response) => {
+    var gamerTag = req?.params?.gamerTag;
+
+    try {
+        const setsQuery = { "Players.GamerTag": { $regex: new RegExp(gamerTag), $options: "i" } };
+        var sets = (await collections.sets.find(setsQuery).toArray()) as unknown as Set[];
+
+        var playerQuery = { "GamerTag": { $regex: new RegExp(gamerTag), $options: "i" } };
+        var player = (await collections.players.findOne(playerQuery)) as unknown as Player;
+
+        var setCountsByOpponent = new Array<[string, number, number]>();
+        forEach(sets, (set) => {
+            var opponent = set.Players.find(player => player.GamerTag.toLowerCase() != gamerTag.toLowerCase());
+            var won = set.WinnerId == player._id;
+            if(setCountsByOpponent.find(x => x[0] == opponent.GamerTag) == undefined){
+                setCountsByOpponent.push([opponent.GamerTag, Number(won), Number(!won)]);
+            }
+            else {
+                setCountsByOpponent.find(x => x[0] == opponent.GamerTag)[1] = setCountsByOpponent.find(x => x[0] == opponent.GamerTag)[1] + Number(won);
+                setCountsByOpponent.find(x => x[0] == opponent.GamerTag)[2] = setCountsByOpponent.find(x => x[0] == opponent.GamerTag)[2] + Number(!won);
+            }
+        });
+
+        setCountsByOpponent = sortBy(setCountsByOpponent, [setCount => -(setCount[1] + setCount[2])]);
+
+        if (setCountsByOpponent) {
+            res.status(200).header("Access-Control-Allow-Origin", "*").send(setCountsByOpponent);
+        } else {
+            throw new Error();
+        }
+    } catch (error) {
+        res.status(404).send(`Unable to find matching document with id: ${req.params.id}`);
     }
 });
 

@@ -84,41 +84,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                switch (totalGames)
-                {
-                    case 2:
-                        // 2-0
-                        {
-                            winnerPoints = 1.0;
-                            break;
-                        }
-                    case 3:
-                        // 3-0 or 2-1
-                        if (setType == 3)
-                        // 2-1
-                        {
-                            winnerPoints = 0.75;
-                            loserPoints = 0.25;
-                        }
-                        else
-                        // 3-0
-                        {
-                            winnerPoints = 1.0;
-                        }
-                        break;
-                    case 4:
-                        // 3-1
-                        winnerPoints = 0.85;
-                        loserPoints = 0.15;
-                        break;
-                    case 5:
-                        // 3-2
-                        winnerPoints = 0.7;
-                        loserPoints = 0.3;
-                        break;
-                    default:
-                        break;
-                }
+                //switch (totalGames)
+                //{
+                //    case 2:
+                //        // 2-0
+                //        {
+                //            winnerPoints = 1.0;
+                //            break;
+                //        }
+                //    case 3:
+                //        // 3-0 or 2-1
+                //        if (setType == 3)
+                //        // 2-1
+                //        {
+                //            winnerPoints = 0.9;
+                //            loserPoints = 0.1;
+                //        }
+                //        else
+                //        // 3-0
+                //        {
+                //            winnerPoints = 1.0;
+                //        }
+                //        break;
+                //    case 4:
+                //        // 3-1
+                //        winnerPoints = 0.9;
+                //        loserPoints = 0.1;
+                //        break;
+                //    case 5:
+                //        // 3-2
+                //        winnerPoints = 0.85;
+                //        loserPoints = 0.15;
+                //        break;
+                //    default:
+                //        break;
+                //}
 
 
                 // Scale points by PD values
@@ -168,13 +168,13 @@ namespace Elo_Calculator
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
                 if (player1RegionalOpponents.Contains(player2["_id"].AsString))
                 {
-                    player1RegionalScale = 0.5;
+                    player1RegionalScale = 0.8;
                 }
 
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
                 if (player2RegionalOpponents.Contains(player1["_id"].AsString))
                 {
-                    player1RegionalScale = 0.5;
+                    player1RegionalScale = 0.8;
                 }
 
                 // Calculate new ratings
@@ -199,11 +199,11 @@ namespace Elo_Calculator
 
         private static List<string> GetRegionalOpponents(BsonDocument player)
         {
-            // Find top 100 most recent sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
+            // Find all sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
             List<string> opponentIds = new List<string>();
 
             var filter = Builders<BsonDocument>.Filter.Eq("Players._id", player["_id"]);
-            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).Limit(100).ToList();
+            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).ToList();
             var setCounts = new List<Tuple<string, int>>();
             foreach (var set in recentSets)
             {
@@ -223,9 +223,9 @@ namespace Elo_Calculator
 
             foreach(var opponent in setCounts)
             {
-                if (opponent.Item2 >= 4) opponentIds.Add(opponent.Item1);
+                if (opponent.Item2 >= 5) opponentIds.Add(opponent.Item1);
 
-                if (opponentIds.Count() == 10) break;
+                if (opponentIds.Count() == 8) break;
             }
 
             return opponentIds;
