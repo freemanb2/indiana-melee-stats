@@ -169,13 +169,13 @@ namespace Elo_Calculator
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
                 if (player1RegionalOpponents.Contains(player2["_id"].AsString))
                 {
-                    player1RegionalScale = 0.2;
+                    player1RegionalScale = 0.5;
                 }
 
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
                 if (player2RegionalOpponents.Contains(player1["_id"].AsString))
                 {
-                    player1RegionalScale = 0.2;
+                    player1RegionalScale = 0.5;
                 }
 
                 // Calculate new ratings
@@ -200,11 +200,11 @@ namespace Elo_Calculator
 
         private static List<string> GetRegionalOpponents(BsonDocument player)
         {
-            // Find top 100 most recent sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
+            // Find all sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
             List<string> opponentIds = new List<string>();
 
             var filter = Builders<BsonDocument>.Filter.Eq("Players._id", player["_id"]);
-            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).Limit(100).ToList();
+            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).ToList();
             var setCounts = new List<Tuple<string, int>>();
             foreach (var set in recentSets)
             {
@@ -224,9 +224,9 @@ namespace Elo_Calculator
 
             foreach(var opponent in setCounts)
             {
-                if (opponent.Item2 >= 4) opponentIds.Add(opponent.Item1);
+                if (opponent.Item2 >= 5) opponentIds.Add(opponent.Item1);
 
-                if (opponentIds.Count() == 10) break;
+                if (opponentIds.Count() == 8) break;
             }
 
             return opponentIds;

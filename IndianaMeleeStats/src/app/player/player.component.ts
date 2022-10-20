@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import Set from 'src/models/set'; 
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-player',
@@ -8,7 +8,8 @@ import Set from 'src/models/set';
   styleUrls: ['./player.component.css']
 })
 export class PlayerComponent implements OnInit {
-  public sets = Array<any>();
+  public tournaments = Array<any>();
+  public headToHeads = new Array<any>();
 
   constructor(private http: HttpClient) { }
 
@@ -16,10 +17,18 @@ export class PlayerComponent implements OnInit {
   }
 
   getSets(gamerTag: any): void {
-    var apiRoute = "http://localhost:8080/players/sets/" + gamerTag;
-    this.http.get<any>(apiRoute).subscribe((results: Array<Set>) => {
-      this.sets = results;
+    var apiRoute = "http://localhost:8080/sets/" + gamerTag;
+    this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
+      this.tournaments = results;
     });
+
+    this.getHeadToHeads(gamerTag);
   }
 
+  getHeadToHeads(gamerTag: any): void {
+    var apiRoute = "http://localhost:8080/players/" + gamerTag + "/headToHeads";
+    this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
+      this.headToHeads = results;
+    });
+  }
 }
