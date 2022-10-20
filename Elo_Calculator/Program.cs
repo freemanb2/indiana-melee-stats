@@ -11,6 +11,7 @@ namespace Elo_Calculator
 {
     public class Program
     {
+        public static IMongoCollection<BsonDocument> _tournaments { get; set; }
         public static IMongoCollection<BsonDocument> _sets { get; set; }
         public static IMongoCollection<BsonDocument> _players { get; set; }
 
@@ -35,9 +36,9 @@ namespace Elo_Calculator
             InitializeDatabase();
             var update = Builders<BsonDocument>.Update
                     .Set(p => p["Stale"], true);
-            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddYears(-1) && x["Stale"] == false, update).ModifiedCount;
+            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddMonths(-6) && x["Stale"] == false, update).ModifiedCount;
 
-            if(updatedCount > 0)
+            if (updatedCount > 0)
             {
                 ResetPlayerElos();
                 var setsToProcess = GetRecentSets();
@@ -84,41 +85,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                switch (totalGames)
-                {
-                    case 2:
-                        // 2-0
-                        {
-                            winnerPoints = 1.0;
-                            break;
-                        }
-                    case 3:
-                        // 3-0 or 2-1
-                        if (setType == 3)
-                        // 2-1
-                        {
-                            winnerPoints = 0.75;
-                            loserPoints = 0.25;
-                        }
-                        else
-                        // 3-0
-                        {
-                            winnerPoints = 1.0;
-                        }
-                        break;
-                    case 4:
-                        // 3-1
-                        winnerPoints = 0.85;
-                        loserPoints = 0.15;
-                        break;
-                    case 5:
-                        // 3-2
-                        winnerPoints = 0.7;
-                        loserPoints = 0.3;
-                        break;
-                    default:
-                        break;
-                }
+                //switch (totalGames)
+                //{
+                //    case 2:
+                //        // 2-0
+                //        {
+                //            winnerPoints = 1.0;
+                //            break;
+                //        }
+                //    case 3:
+                //        // 3-0 or 2-1
+                //        if (setType == 3)
+                //        // 2-1
+                //        {
+                //            winnerPoints = 0.75;
+                //            loserPoints = 0.25;
+                //        }
+                //        else
+                //        // 3-0
+                //        {
+                //            winnerPoints = 1.0;
+                //        }
+                //        break;
+                //    case 4:
+                //        // 3-1
+                //        winnerPoints = 0.85;
+                //        loserPoints = 0.15;
+                //        break;
+                //    case 5:
+                //        // 3-2
+                //        winnerPoints = 0.7;
+                //        loserPoints = 0.3;
+                //        break;
+                //    default:
+                //        break;
+                //}
 
 
                 // Scale points by PD values
@@ -168,13 +169,13 @@ namespace Elo_Calculator
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
                 if (player1RegionalOpponents.Contains(player2["_id"].AsString))
                 {
-                    player1RegionalScale = 0.5;
+                    player1RegionalScale = 0.2;
                 }
 
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
                 if (player2RegionalOpponents.Contains(player1["_id"].AsString))
                 {
-                    player1RegionalScale = 0.5;
+                    player1RegionalScale = 0.2;
                 }
 
                 // Calculate new ratings
@@ -219,7 +220,7 @@ namespace Elo_Calculator
                 }
             }
 
-            setCounts.OrderByDescending(x => x.Item2);
+            setCounts = setCounts.OrderByDescending(x => x.Item2).ToList();
 
             foreach(var opponent in setCounts)
             {
@@ -261,6 +262,7 @@ namespace Elo_Calculator
             MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
             IMongoDatabase _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
 
+            _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
             _sets = _db.GetCollection<BsonDocument>("Sets");
             _players = _db.GetCollection<BsonDocument>("Players");
         }

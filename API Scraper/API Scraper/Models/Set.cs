@@ -28,7 +28,7 @@ namespace API_Scraper.Models
             LoserId = WinnerId.ToString() == Players[0].Id ? Players[1].Id : Players[0].Id;
             TotalGames = API_Set.TotalGames;
             CompletedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(API_Set.CompletedAt);
-            Stale = CompletedAt < DateTime.Now.AddYears(-1);
+            Stale = CompletedAt < DateTime.Now.AddMonths(-6);
         }
 
         public Set(BsonDocument set)

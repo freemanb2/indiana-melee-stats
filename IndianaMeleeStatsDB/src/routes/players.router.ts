@@ -39,9 +39,11 @@ playersRouter.get("/rankings", async (req: Request, res: Response) => {
         const query = { Elo: { $gte: 1000 } };
         const players = (await collections.players.find(query).toArray()) as unknown as Player[];
 
+        var staleDate = new Date();
+        staleDate.setDate(staleDate.getDate() - 180);
         var playersWithSufficientSets = new Array<Player>();
         await Promise.all(players.map(async (player) => {
-            var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players._id": player._id, "Events.Sets.Stale": false }).toArray()).length;
+            var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players.GamerTag": player.GamerTag, "Date": { $gte: staleDate } }).toArray()).length;
             if (tournamentCount >= 3){
                 playersWithSufficientSets.push(player);
             }
