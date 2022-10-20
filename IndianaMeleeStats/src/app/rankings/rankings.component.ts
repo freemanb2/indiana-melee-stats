@@ -9,6 +9,7 @@ import Player from 'src/models/player';
 })
 export class RankingsComponent implements OnInit {
   public rankedPlayers = Array<any>();
+  public loading = true;
 
   constructor(private http: HttpClient) { }
 
@@ -20,6 +21,7 @@ export class RankingsComponent implements OnInit {
     var apiRoute = "http://localhost:8080/players/rankings";
     this.http.get<any>(apiRoute).subscribe((results: Array<Player>) => {
       this.rankedPlayers = results;
+      this.loading = false;
     });
   }
 

@@ -1,5 +1,10 @@
-<ol>
-    <li *ngFor="let player of rankedPlayers">
-        {{player.GamerTag}} ({{player.Elo}})
-    </li>
-</ol>
+<div class="container">
+    <div *ngIf="loading" class="loading-icon">
+        <img src="../../assets/spinning-loading.gif" />
+    </div>
+    <ol>
+        <li *ngFor="let player of rankedPlayers">
+            {{player.GamerTag}} ({{player.Elo}})
+        </li>
+    </ol>
+</div>

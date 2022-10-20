@@ -9,6 +9,9 @@
     <div class="row">
         <div class="col">
             <h3>Tournament Results</h3>
+            <div *ngIf="loading" class="loading-icon">
+                <img src="../../assets/spinning-loading.gif" />
+            </div>
             <div *ngFor="let tournament of tournaments">
                 <h4>{{tournament.tournamentName}}</h4>
                 <div *ngFor="let set of tournament.tournamentSets">
@@ -19,6 +22,9 @@
         </div>
         <div class="col">
             <h3>Head-To-Heads</h3>
+            <div *ngIf="loading" class="loading-icon">
+                <img src="../../assets/spinning-loading.gif" />
+            </div>
             <div *ngFor="let matchup of headToHeads">
                 {{matchup[0]}} ({{matchup[1]}}W-{{matchup[2]}}L)
             </div>

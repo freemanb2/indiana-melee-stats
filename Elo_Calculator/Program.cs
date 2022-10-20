@@ -167,13 +167,13 @@ namespace Elo_Calculator
                 double player2RegionalScale = 1.0;
 
                 var player1RegionalOpponents = GetRegionalOpponents(player1);
-                if (player1RegionalOpponents.Contains(player2["_id"].AsString))
+                if (player1RegionalOpponents.Contains(player2["GamerTag"].AsString))
                 {
                     player1RegionalScale = 0.5;
                 }
 
                 var player2RegionalOpponents = GetRegionalOpponents(player2);
-                if (player2RegionalOpponents.Contains(player1["_id"].AsString))
+                if (player2RegionalOpponents.Contains(player1["GamerTag"].AsString))
                 {
                     player1RegionalScale = 0.5;
                 }
@@ -200,23 +200,22 @@ namespace Elo_Calculator
 
         private static List<string> GetRegionalOpponents(BsonDocument player)
         {
-            // Find all sets played. Group opponents by number of sets played. Return a list of Player._id's for the top 5 most played opponents.
-            List<string> opponentIds = new List<string>();
+            List<string> opponentTags = new List<string>();
 
-            var filter = Builders<BsonDocument>.Filter.Eq("Players._id", player["_id"]);
+            var filter = Builders<BsonDocument>.Filter.Eq("Players.Gamertag", player["GamerTag"]);
             var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).ToList();
             var setCounts = new List<Tuple<string, int>>();
             foreach (var set in recentSets)
             {
-                var opponentId = set["Players"].AsBsonArray.Where(x => x["_id"] != player["_id"]).First().AsBsonDocument["_id"];
-                if (!setCounts.Any(x => x.Item1 == opponentId.AsString))
+                var opponentTag = set["Players"].AsBsonArray.Where(x => x["GamerTag"] != player["GamerTag"]).First().AsBsonDocument["GamerTag"];
+                if (!setCounts.Any(x => x.Item1 == opponentTag.AsString))
                 {
-                    setCounts.Add(new Tuple<string, int>(opponentId.AsString, 1));
+                    setCounts.Add(new Tuple<string, int>(opponentTag.AsString, 1));
                 }
                 else
                 {
-                    var index = setCounts.FindIndex(x => x.Item1 == opponentId);
-                    setCounts[index] = new Tuple<string, int>(opponentId.AsString, setCounts[index].Item2 + 1);
+                    var index = setCounts.FindIndex(x => x.Item1 == opponentTag);
+                    setCounts[index] = new Tuple<string, int>(opponentTag.AsString, setCounts[index].Item2 + 1);
                 }
             }
 
@@ -224,12 +223,12 @@ namespace Elo_Calculator
 
             foreach(var opponent in setCounts)
             {
-                if (opponent.Item2 >= 5) opponentIds.Add(opponent.Item1);
+                if (opponent.Item2 >= 5) opponentTags.Add(opponent.Item1);
 
-                if (opponentIds.Count() == 8) break;
+                if (opponentTags.Count() == 8) break;
             }
 
-            return opponentIds;
+            return opponentTags;
         }
 
         private static void ResetPlayerElos()

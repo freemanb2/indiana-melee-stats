@@ -10,6 +10,7 @@ import { BehaviorSubject } from 'rxjs';
 export class PlayerComponent implements OnInit {
   public tournaments = Array<any>();
   public headToHeads = new Array<any>();
+  public loading = false;
 
   constructor(private http: HttpClient) { }
 
@@ -17,6 +18,7 @@ export class PlayerComponent implements OnInit {
   }
 
   getSets(gamerTag: any): void {
+    this.loading = true;
     var apiRoute = "http://localhost:8080/sets/" + gamerTag;
     this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
       this.tournaments = results;
@@ -30,5 +32,6 @@ export class PlayerComponent implements OnInit {
     this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
       this.headToHeads = results;
     });
+    this.loading = false;
   }
 }
