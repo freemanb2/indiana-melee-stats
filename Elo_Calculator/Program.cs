@@ -13,16 +13,15 @@ namespace Elo_Calculator
     public class Program
     {
         public static IMongoCollection<BsonDocument> _tournaments { get; set; }
+        public static IMongoCollection<BsonDocument> _events { get; set; }
         public static IMongoCollection<BsonDocument> _sets { get; set; }
         public static IMongoCollection<BsonDocument> _players { get; set; }
 
         public static void Main()
         {
             InitializeDatabase();
-            MarkStaleSetsAndRecalculateElos();
-            ResetPlayerElos();
-            var setsToProcess = GetRecentSets();
-            UpdateRatings(setsToProcess);
+            MarkStaleSets();
+            RecalculateElos();
         }
 
         public static void UpdateRatingsWithSpecificSets(List<BsonDocument> setsToProcess)
@@ -33,23 +32,27 @@ namespace Elo_Calculator
             UpdateRatings(setsToProcess);
         }
 
-        public static void MarkStaleSetsAndRecalculateElos()
+        public static long MarkStaleSets()
         {
             InitializeDatabase();
             var update = Builders<BsonDocument>.Update
                     .Set(p => p["Stale"], true);
-            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddMonths(-6) && x["Stale"] == false, update).ModifiedCount;
+            var updatedCount = _sets.UpdateMany(x => x["CompletedAt"] < DateTime.Now.AddYears(-1) && x["Stale"] == false, update).ModifiedCount;
 
-            if (updatedCount > 0)
-            {
-                ResetPlayerElos();
-                var setsToProcess = GetRecentSets();
-                UpdateRatings(setsToProcess);
-            }
+            return updatedCount;
+        }
+
+        public static void RecalculateElos()
+        {
+            ResetPlayerElos();
+            var setsToProcess = GetRecentSets();
+            UpdateRatings(setsToProcess);
         }
 
         private static void UpdateRatings(List<BsonDocument> setsToProcess)
         {
+            var playerTournamentCounts = GetPlayerTournamentCounts();
+
             foreach (var set in setsToProcess)
             {
                 var player1GamerTag = set["Players"][0]["GamerTag"].AsString;
@@ -82,13 +85,13 @@ namespace Elo_Calculator
                     player2 = _players.Find(x => x["_id"] == set["Players"][1]["_id"]).Single().ToBsonDocument();
                 }
 
+                var minimumTournamentAttendance = 5;
+
                 // Do not count elo changes for sets against low activity (usually out of state) players
-                var tournamentFilter = Builders<BsonDocument>.Filter.Regex("Events.Sets.Players.GamerTag", new BsonRegularExpression("^" + Regex.Escape(player1GamerTag) + "$", "i"));
-                if (_tournaments.Find(tournamentFilter).CountDocuments() < 3) 
+                if (playerTournamentCounts.Where(x => x["GamerTag"].AsString.ToLower() == player1GamerTag.ToLower()).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
                     continue;
 
-                tournamentFilter = Builders<BsonDocument>.Filter.Regex("Events.Sets.Players.GamerTag", new BsonRegularExpression("^" + Regex.Escape(player2GamerTag) + "$", "i"));
-                if (_tournaments.Find(tournamentFilter).CountDocuments() < 3) 
+                if (playerTournamentCounts.Where(x => x["GamerTag"].AsString.ToLower() == player2GamerTag.ToLower()).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
                     continue;
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
@@ -126,42 +129,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                switch (totalGames)
-                {
-                    case 2:
-                        // 2-0
-                        {
-                            winnerPoints = 1.0;
-                            break;
-                        }
-                    case 3:
-                        // 3-0 or 2-1
-                        if (setType == 3)
-                        // 2-1
-                        {
-                            winnerPoints = 0.85;
-                            loserPoints = 0.15;
-                        }
-                        else
-                        // 3-0
-                        {
-                            winnerPoints = 1.0;
-                        }
-                        break;
-                    case 4:
-                        // 3-1
-                        winnerPoints = 0.9;
-                        loserPoints = 0.1;
-                        break;
-                    case 5:
-                        // 3-2
-                        winnerPoints = 0.8;
-                        loserPoints = 0.2;
-                        break;
-                    default:
-                        break;
-                }
-
+                //switch (totalGames)
+                //{
+                //    case 2:
+                //        // 2-0
+                //        {
+                //            winnerPoints = 1.0;
+                //            break;
+                //        }
+                //    case 3:
+                //        // 3-0 or 2-1
+                //        if (setType == 3)
+                //        // 2-1
+                //        {
+                //            winnerPoints = 0.85;
+                //            loserPoints = 0.15;
+                //        }
+                //        else
+                //        // 3-0
+                //        {
+                //            winnerPoints = 1.0;
+                //        }
+                //        break;
+                //    case 4:
+                //        // 3-1
+                //        winnerPoints = 0.9;
+                //        loserPoints = 0.1;
+                //        break;
+                //    case 5:
+                //        // 3-2
+                //        winnerPoints = 0.8;
+                //        loserPoints = 0.2;
+                //        break;
+                //    default:
+                //        break;
+                //}
 
                 // Scale points by PD values
                 double player1Points = 0;
@@ -252,21 +254,35 @@ namespace Elo_Calculator
 
             switch (numSetsPlayed)
             {
-                case var expression when numSetsPlayed <= 4:
+                case var expression when numSetsPlayed <= 3:
                     bias = 1.0;
                     break;
-                case var expression when numSetsPlayed <= 8:
-                    bias = 0.9;
+                case var expression when numSetsPlayed <= 6:
+                    bias = 0.95;
                     break;
-                case var expression when numSetsPlayed <= 12:
-                    bias = 0.75;
+                case var expression when numSetsPlayed <= 10:
+                    bias = 0.85;
                     break;
                 default:
-                    bias = 0.25;
+                    bias = 0.35;
                     break;
             }
 
             return bias;
+        }
+
+        private static List<BsonDocument> GetPlayerTournamentCounts()
+        {
+            List<BsonDocument> players = _players.Find(x => true).ToList();
+            
+            players.ForEach((player) =>
+            {
+                var tournamentFilter = Builders<BsonDocument>.Filter.Regex("Events.Sets.Players.GamerTag", new BsonRegularExpression("^" + Regex.Escape(player["GamerTag"].AsString) + "$", "i"));
+                var tournamentCount = _tournaments.Find(tournamentFilter).CountDocuments();
+                player.Add("TournamentCount", (int)tournamentCount);
+            });
+
+            return players;
         }
 
         private static List<string> GetRegionalOpponents(BsonDocument player)
@@ -333,6 +349,7 @@ namespace Elo_Calculator
             IMongoDatabase _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
 
             _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
+            _events = _db.GetCollection<BsonDocument>("Events");
             _sets = _db.GetCollection<BsonDocument>("Sets");
             _players = _db.GetCollection<BsonDocument>("Players");
         }

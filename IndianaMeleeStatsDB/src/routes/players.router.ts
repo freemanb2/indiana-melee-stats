@@ -31,7 +31,7 @@ playersRouter.get("/rankings", async (req: Request, res: Response) => {
         var playersWithSufficientSets = new Array<Player>();
         await Promise.all(players.map(async (player) => {
             var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players.GamerTag": player.GamerTag, "Date": { $gte: staleDate } }).toArray()).length;
-            if (tournamentCount >= 3){
+            if (tournamentCount >= 5){
                 playersWithSufficientSets.push(player);
             }
         }));
@@ -52,19 +52,19 @@ playersRouter.get("/:gamerTag/headToHeads", async (req: Request, res: Response) 
     var gamerTag = req?.params?.gamerTag;
 
     try {
-        var playerQuery = { "GamerTag": { $regex: new RegExp(escapeRegExp(gamerTag)), $options: "i" } };
+        var playerQuery = { "GamerTag": { $regex: new RegExp(`^${escapeRegExp(gamerTag)}$`), $options: "i" } };
         var player = (await collections.players.findOne(playerQuery)) as unknown as Player;
 
-        const setsQuery = { "Players.GamerTag": { $regex: new RegExp(player.GamerTag), $options: "i" } };
+        const setsQuery = { "Players.GamerTag": { $regex: new RegExp(`^${player.GamerTag}$`), $options: "i" } };
         var sets = (await collections.sets.find(setsQuery).toArray()) as unknown as Set[];
 
         var setCountsByOpponent = new Array<[string, number, number]>();
         await Promise.all(sets.map(async (set) => {
             var opponent = set.Players.find(p => p.GamerTag.toLowerCase() != player.GamerTag.toLowerCase());
 
-            const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(escapeRegExp(opponent.GamerTag)), $options: "i" } };
+            const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(`^${escapeRegExp(opponent.GamerTag)}$`), $options: "i" } };
             var opponentTournaments = (await collections.tournaments.find(tournamentsQuery).toArray()) as unknown as Tournament[];
-            var opponentInactive = opponentTournaments.length < 3;
+            var opponentInactive = opponentTournaments.length < 5;
             if(opponentInactive) return;
 
             var winner;
@@ -120,7 +120,7 @@ playersRouter.get("/gamertag/:gamerTag", async (req: Request, res: Response) => 
     var gamerTag = req?.params?.gamerTag;
     
     try {
-        const query = { GamerTag: { $regex: new RegExp(gamerTag), $options: "i" } };
+        const query = { GamerTag: { $regex: new RegExp(`^${gamerTag}$`), $options: "i" } };
         const player = (await collections.players.findOne(query)) as unknown as Player;
 
         if (player) {

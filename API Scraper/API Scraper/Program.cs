@@ -25,7 +25,7 @@ namespace API_Scraper
         {
             InitializeDatabase();
 
-            //Elo_Calculator.Program.MarkStaleSetsAndRecalculateElos();
+            //Elo_Calculator.Program.MarkStaleSets();
             //ReprocessRecentIncompleteTournaments();
 
             var task = ScrapeStartGGAPI();
@@ -54,7 +54,7 @@ namespace API_Scraper
             var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
             TournamentHandler _consumer = new TournamentHandler(client);
-            List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 20);
+            List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 40);
 
             ParseTournaments(validTournaments);
         }
@@ -102,7 +102,7 @@ namespace API_Scraper
                     }
                 }
                 // Recalculate Elo ratings if tournament happened in the last 180 days
-                //if (tournament.Date >= DateTime.Now.AddMonths(-6) && setsToProcess.Count > 0)
+                //if (tournament.Date >= DateTime.Now.AddYears(-1) && setsToProcess.Count > 0)
                 //{
                 //    Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess);
                 //}

@@ -14,10 +14,10 @@ setsRouter.get("/:gamerTag", async (req: Request, res: Response) => {
     var gamerTag = req?.params?.gamerTag;
 
     try {
-        const setsQuery = { "Players.GamerTag": { $regex: new RegExp(gamerTag), $options: "i" } };
+        const setsQuery = { "Players.GamerTag": { $regex: new RegExp(`^${gamerTag}$`), $options: "i" } };
         var sets = (await collections.sets.find(setsQuery).toArray()) as unknown as Set[];
 
-        const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(gamerTag), $options: "i" } };
+        const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(`^${gamerTag}$`), $options: "i" } };
         var tournaments = (await collections.tournaments.find(tournamentsQuery).toArray()) as unknown as Tournament[];
 
         var setsByTournament = new Array;
