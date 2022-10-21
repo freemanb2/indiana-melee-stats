@@ -25,8 +25,8 @@ namespace API_Scraper
         {
             InitializeDatabase();
 
-            Elo_Calculator.Program.MarkStaleSetsAndRecalculateElos();
-            ReprocessRecentIncompleteTournaments();
+            //Elo_Calculator.Program.MarkStaleSetsAndRecalculateElos();
+            //ReprocessRecentIncompleteTournaments();
 
             var task = ScrapeStartGGAPI();
             task.Wait();
@@ -102,10 +102,10 @@ namespace API_Scraper
                     }
                 }
                 // Recalculate Elo ratings if tournament happened in the last 180 days
-                if (tournament.Date >= DateTime.Now.AddMonths(-6) && setsToProcess.Count > 0)
-                {
-                    Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess);
-                }
+                //if (tournament.Date >= DateTime.Now.AddMonths(-6) && setsToProcess.Count > 0)
+                //{
+                //    Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess);
+                //}
                 setsToProcess.Clear();
             }
             System.Console.WriteLine("Done");

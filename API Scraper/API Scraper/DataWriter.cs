@@ -3,6 +3,8 @@
 using MongoDB.Driver;
 using API_Scraper.Models;
 using MongoDB.Bson;
+using System;
+using System.Text.RegularExpressions;
 
 namespace API_Scraper
 {
@@ -181,7 +183,16 @@ namespace API_Scraper
 
         private BsonDocument CreatePlayerDocument(Player player)
         {
-            BsonDocument existingPlayer = _players.Find(x => x["GamerTag"] == player.GamerTag).SingleOrDefault();
+            var filter = Builders<BsonDocument>.Filter.Regex("GamerTag", new BsonRegularExpression("^"+Regex.Escape(player.GamerTag)+"$", "i"));
+            BsonDocument existingPlayer = new BsonDocument();
+            try
+            {
+                existingPlayer = _players.Find(filter).SingleOrDefault();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             if (existingPlayer != null)
             {
                 return existingPlayer.ToBsonDocument();

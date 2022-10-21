@@ -24,5 +24,4 @@ export class RankingsComponent implements OnInit {
       this.loading = false;
     });
   }
-
 }
