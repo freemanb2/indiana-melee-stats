@@ -9,6 +9,8 @@ import { sortBy, forEach } from "lodash";
 
 export const playersRouter = express.Router();
 
+const minimumTournamentsAttended = 6;
+
 playersRouter.use(express.json());
 
 playersRouter.get("/", async (req: Request, res: Response) => {
@@ -27,11 +29,11 @@ playersRouter.get("/rankings", async (req: Request, res: Response) => {
         const players = (await collections.players.find(query).toArray()) as unknown as Player[];
 
         var staleDate = new Date();
-        staleDate.setDate(staleDate.getDate() - 180);
+        staleDate.setDate(staleDate.getDate() - 365);
         var playersWithSufficientSets = new Array<Player>();
         await Promise.all(players.map(async (player) => {
             var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players.GamerTag": player.GamerTag, "Date": { $gte: staleDate } }).toArray()).length;
-            if (tournamentCount >= 5){
+            if (tournamentCount >= minimumTournamentsAttended){
                 playersWithSufficientSets.push(player);
             }
         }));
@@ -64,7 +66,7 @@ playersRouter.get("/:gamerTag/headToHeads", async (req: Request, res: Response) 
 
             const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(`^${escapeRegExp(opponent.GamerTag)}$`), $options: "i" } };
             var opponentTournaments = (await collections.tournaments.find(tournamentsQuery).toArray()) as unknown as Tournament[];
-            var opponentInactive = opponentTournaments.length < 5;
+            var opponentInactive = opponentTournaments.length < minimumTournamentsAttended;
             if(opponentInactive) return;
 
             var winner;

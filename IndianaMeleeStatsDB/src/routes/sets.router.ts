@@ -8,6 +8,8 @@ import { forEach } from "lodash";
 
 export const setsRouter = express.Router();
 
+const minimumTournamentsAttended = 3;
+
 setsRouter.use(express.json());
 
 setsRouter.get("/:gamerTag", async (req: Request, res: Response) => {

@@ -55,6 +55,10 @@ namespace Elo_Calculator
 
             foreach (var set in setsToProcess)
             {
+                var entrantCount = GetEntrantsInSetTournament(set);
+                if (entrantCount < 8)
+                    continue;
+
                 var player1GamerTag = set["Players"][0]["GamerTag"].AsString;
                 var player2GamerTag = set["Players"][1]["GamerTag"].AsString;
 
@@ -85,7 +89,7 @@ namespace Elo_Calculator
                     player2 = _players.Find(x => x["_id"] == set["Players"][1]["_id"]).Single().ToBsonDocument();
                 }
 
-                var minimumTournamentAttendance = 5;
+                var minimumTournamentAttendance = 6;
 
                 // Do not count elo changes for sets against low activity (usually out of state) players
                 if (playerTournamentCounts.Where(x => x["GamerTag"].AsString.ToLower() == player1GamerTag.ToLower()).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
@@ -129,41 +133,41 @@ namespace Elo_Calculator
                 double winnerPoints = 1;
                 double loserPoints = 0;
 
-                //switch (totalGames)
-                //{
-                //    case 2:
-                //        // 2-0
-                //        {
-                //            winnerPoints = 1.0;
-                //            break;
-                //        }
-                //    case 3:
-                //        // 3-0 or 2-1
-                //        if (setType == 3)
-                //        // 2-1
-                //        {
-                //            winnerPoints = 0.85;
-                //            loserPoints = 0.15;
-                //        }
-                //        else
-                //        // 3-0
-                //        {
-                //            winnerPoints = 1.0;
-                //        }
-                //        break;
-                //    case 4:
-                //        // 3-1
-                //        winnerPoints = 0.9;
-                //        loserPoints = 0.1;
-                //        break;
-                //    case 5:
-                //        // 3-2
-                //        winnerPoints = 0.8;
-                //        loserPoints = 0.2;
-                //        break;
-                //    default:
-                //        break;
-                //}
+                switch (totalGames)
+                {
+                    case 2:
+                        // 2-0
+                        {
+                            winnerPoints = 1.0;
+                            break;
+                        }
+                    case 3:
+                        // 3-0 or 2-1
+                        if (setType == 3)
+                        // 2-1
+                        {
+                            winnerPoints = 0.85;
+                            loserPoints = 0.15;
+                        }
+                        else
+                        // 3-0
+                        {
+                            winnerPoints = 1.0;
+                        }
+                        break;
+                    case 4:
+                        // 3-1
+                        winnerPoints = 0.9;
+                        loserPoints = 0.1;
+                        break;
+                    case 5:
+                        // 3-2
+                        winnerPoints = 0.85;
+                        loserPoints = 0.15;
+                        break;
+                    default:
+                        break;
+                }
 
                 // Scale points by PD values
                 double player1Points = 0;
@@ -200,35 +204,37 @@ namespace Elo_Calculator
                 }
 
                 // Determine scaling coefficient for each player
-                int K1 = 20;
-                if (player1["Elo"] >= 2400) K1 = 10;
-                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player1["_id"])).Count < 10) K1 = 40;
+                int K1 = 80;
+                if (player1["Elo"] >= 2400) K1 = 40;
+                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Any(y => y["GamerTag"] == player1GamerTag)).Count < 30) K1 = 160;
 
-                int K2 = 20;
-                if (player2["Elo"] >= 2400) K2 = 10;
-                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Contains(player2["_id"])).Count < 10) K2 = 40;
+                int K2 = 80;
+                if (player2["Elo"] >= 2400) K2 = 40;
+                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Any(y => y["GamerTag"] == player2GamerTag)).Count < 30) K2 = 160;
 
-                // Scale down rating change if set was in-region
-                double player1RegionalScale = 1.0;
-                double player2RegionalScale = 1.0;
-
-                //var player1RegionalOpponents = GetRegionalOpponents(player1);
-                //if (player1RegionalOpponents.Contains(player2["GamerTag"].AsString))
-                //{
-                //    player1RegionalScale = 0.5;
-                //}
-
-                //var player2RegionalOpponents = GetRegionalOpponents(player2);
-                //if (player2RegionalOpponents.Contains(player1["GamerTag"].AsString))
-                //{
-                //    player1RegionalScale = 0.5;
-                //}
-
+                // Sets are worth less rating the more sets people have played
                 var frequencyBias = GetFrequencyBias(player1, player2, setsToProcess);
 
+                // Tournaments are worth more rating based on number of attendants
+                var entrantScale = 1.0;
+                switch (entrantCount)
+                {
+                    case var expression when entrantCount < 12:
+                        entrantScale = 0.5;
+                        break;
+                    case var expression when entrantCount < 16:
+                        entrantScale = 0.75;
+                        break;
+                    case var expression when entrantCount < 24:
+                        entrantScale = 0.9;
+                        break;
+                    default:
+                        break;
+                }
+
                 // Calculate new ratings
-                int player1RatingChange = (int)Math.Round(player1Points * K1 * frequencyBias, 0, MidpointRounding.AwayFromZero);
-                int player2RatingChange = (int)Math.Round(player2Points * K2 * frequencyBias, 0, MidpointRounding.AwayFromZero);
+                int player1RatingChange = (int)Math.Round(player1Points * K1 * frequencyBias * entrantScale, 0, MidpointRounding.AwayFromZero);
+                int player2RatingChange = (int)Math.Round(player2Points * K2 * frequencyBias * entrantScale, 0, MidpointRounding.AwayFromZero);
 
                 int player1Rating = player1["Elo"].AsInt32 + player1RatingChange;
                 int player2Rating = player2["Elo"].AsInt32 + player2RatingChange;
@@ -250,23 +256,9 @@ namespace Elo_Calculator
         {
             double bias;
 
-            var numSetsPlayed = setsToProcess.FindAll(x => x["Processed"] != false && x["Players"].AsBsonArray.Any(y => y["_id"] == player1["_id"]) && x["Players"].AsBsonArray.Any(y => y["_id"] == player2["_id"])).Count();
+            var numSetsPlayed = setsToProcess.FindAll(x => x["Processed"] != false && x["Players"].AsBsonArray.Any(y => y["_id"] == player1["_id"]) && x["Players"].AsBsonArray.Any(y => y["_id"] == player2["_id"])).Count() + 1;
 
-            switch (numSetsPlayed)
-            {
-                case var expression when numSetsPlayed <= 3:
-                    bias = 1.0;
-                    break;
-                case var expression when numSetsPlayed <= 6:
-                    bias = 0.95;
-                    break;
-                case var expression when numSetsPlayed <= 10:
-                    bias = 0.85;
-                    break;
-                default:
-                    bias = 0.35;
-                    break;
-            }
+            bias = 1.0 / (numSetsPlayed);
 
             return bias;
         }
@@ -283,6 +275,30 @@ namespace Elo_Calculator
             });
 
             return players;
+        }
+
+        private static int GetEntrantsInSetTournament(BsonDocument set)
+        {
+            var eventFilter = Builders<BsonDocument>.Filter.Regex("Sets._id", set["_id"].AsString);
+            var _event = _events.Find(eventFilter).Single();
+            List<BsonDocument> players = new List<BsonDocument>();
+
+            _event["Sets"].AsBsonArray.ToList().ForEach(set =>
+            {
+                if (players.Find(x => x["GamerTag"] == set["Players"][0]["GamerTag"]) == null)
+                {
+                    players.Add(set["Players"][0].AsBsonDocument);
+                }
+
+                if (players.Find(x => x["GamerTag"] == set["Players"][1]["GamerTag"]) == null)
+                {
+                    players.Add(set["Players"][1].AsBsonDocument);
+                }
+            });
+
+            var entrantCount = players.Count();
+
+            return entrantCount;
         }
 
         private static List<string> GetRegionalOpponents(BsonDocument player)
