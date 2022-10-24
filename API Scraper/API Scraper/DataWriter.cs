@@ -148,25 +148,44 @@ namespace API_Scraper
 
         private BsonDocument CreateSetDocument(Set set)
         {
+            // Deduplicate Player data before inserting into Set document
+            BsonArray setPlayers = CreateSetPlayers(set.Players);
+
             return new BsonDocument {
                 {"_id", set.Id },
                 {"DisplayScore", set.DisplayScore },
-                {"WinnerId", set.WinnerId },
-                {"LoserId", set.LoserId },
+                {"WinnerId", GetWinnerIdForSet(set, setPlayers) },
+                {"LoserId", GetLoserIdForSet(set, setPlayers) },
                 {"TotalGames", set.TotalGames },
-                {"PlayerIds", GetPlayerIdsForSet(set.Players) },
-                {"Players", CreateSetPlayers(set.Players) },
+                {"PlayerIds", GetPlayerIdsForSet(setPlayers) },
+                {"Players", setPlayers },
                 {"Stale", set.Stale },
                 {"CompletedAt", set.CompletedAt }
             };
         }
 
-        private BsonArray GetPlayerIdsForSet(List<Player> players)
+        private string GetWinnerIdForSet(Set set, BsonArray setPlayers)
+        {
+            var winnerTag = set.Players.Find(x => x.Id == set.WinnerId).GamerTag;
+            var gamerTagRegex = new Regex("^"+Regex.Escape(winnerTag)+"$", RegexOptions.IgnoreCase);
+            var winner = setPlayers.ToList().Find(x => gamerTagRegex.IsMatch(x["GamerTag"].AsString)).AsBsonDocument;
+            return winner["_id"].AsString;
+        }
+
+        private string GetLoserIdForSet(Set set, BsonArray setPlayers)
+        {
+            var loserTag = set.Players.Find(x => x.Id == set.LoserId).GamerTag;
+            var gamerTagRegex = new Regex("^" + Regex.Escape(loserTag) + "$", RegexOptions.IgnoreCase);
+            var loser = setPlayers.ToList().Find(x => gamerTagRegex.IsMatch(x["GamerTag"].AsString)).AsBsonDocument;
+            return loser["_id"].AsString;
+        }
+
+        private BsonArray GetPlayerIdsForSet(BsonArray players)
         {
             var playerIdsBsonArray = new BsonArray();
-            foreach (Player player in players)
+            foreach (BsonDocument player in players)
             {
-                playerIdsBsonArray.Add(player.Id);
+                playerIdsBsonArray.Add(player["_id"]);
             }
             return playerIdsBsonArray;
         }

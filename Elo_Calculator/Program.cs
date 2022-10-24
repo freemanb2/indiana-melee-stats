@@ -59,43 +59,38 @@ namespace Elo_Calculator
                 if (entrantCount < 8)
                     continue;
 
-                var player1GamerTag = set["Players"][0]["GamerTag"].AsString;
-                var player2GamerTag = set["Players"][1]["GamerTag"].AsString;
-
                 BsonDocument player1;
                 BsonDocument player2;
 
+                player1 = set["Players"][0].AsBsonDocument;
+                player2 = set["Players"][1].AsBsonDocument;
+                var player1Id = player1["_id"].AsString;
+                var player2Id = player2["_id"].AsString;
+
                 FilterDefinition<BsonDocument> filter;
 
-                try
-                {
-                    filter = Builders<BsonDocument>.Filter.Regex("GamerTag", new BsonRegularExpression("^"+Regex.Escape(player1GamerTag)+"$", "i"));
-                    player1 = _players.Find(filter).Single().ToBsonDocument();
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine("Potential Start.gg name change detected - using Set Player._id instead");
-                    player1 = _players.Find(x => x["_id"] == set["Players"][0]["_id"]).Single().ToBsonDocument();
-                }
+                filter = Builders<BsonDocument>.Filter.Eq("_id", player1Id );
+                player1["Elo"] = _players.Find(filter).Single().GetValue("Elo");
 
-                try
-                {
-                    filter = Builders<BsonDocument>.Filter.Regex("GamerTag", new BsonRegularExpression("^"+Regex.Escape(player2GamerTag)+"$", "i"));
-                    player2 = _players.Find(filter).Single().ToBsonDocument();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Potential Start.gg name change detected - using Set Player._id instead");
-                    player2 = _players.Find(x => x["_id"] == set["Players"][1]["_id"]).Single().ToBsonDocument();
-                }
+                filter = Builders<BsonDocument>.Filter.Eq("_id", player2Id);
+                player2["Elo"] = _players.Find(filter).Single().GetValue("Elo");
+
+                // Update set with Elos at time of processing
+                var update = Builders<BsonDocument>.Update
+                    .Set(s => s["Players"][0]["Elo"], player1["Elo"]);
+                _sets.UpdateOne(x => x["_id"] == set["_id"], update);
+
+                update = Builders<BsonDocument>.Update
+                    .Set(s => s["Players"][1]["Elo"], player2["Elo"]);
+                _sets.UpdateOne(x => x["_id"] == set["_id"], update);
 
                 var minimumTournamentAttendance = 6;
 
                 // Do not count elo changes for sets against low activity (usually out of state) players
-                if (playerTournamentCounts.Where(x => x["GamerTag"].AsString.ToLower() == player1GamerTag.ToLower()).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
+                if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
                     continue;
 
-                if (playerTournamentCounts.Where(x => x["GamerTag"].AsString.ToLower() == player2GamerTag.ToLower()).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
+                if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
                     continue;
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
@@ -173,7 +168,7 @@ namespace Elo_Calculator
                 double player1Points = 0;
                 double player2Points = 0;
 
-                bool player1Won = ((setType == 5 && player1SetCount == 3) || (setType == 3 && player1SetCount == 2));
+                bool player1Won = player1["_id"] == set["WinnerId"];
 
                 if (player1Won)
                 {
@@ -206,11 +201,11 @@ namespace Elo_Calculator
                 // Determine scaling coefficient for each player
                 int K1 = 80;
                 if (player1["Elo"] >= 2400) K1 = 40;
-                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Any(y => y["GamerTag"] == player1GamerTag)).Count < 30) K1 = 160;
+                else if (playerTournamentCounts.Where(x => x["_id"].AsString == player1["_id"].AsString).Count() < 30) K1 = 160;
 
                 int K2 = 80;
                 if (player2["Elo"] >= 2400) K2 = 40;
-                else if (setsToProcess.FindAll(x => x["Processed"] == true && x["Players"].AsBsonArray.Any(y => y["GamerTag"] == player2GamerTag)).Count < 30) K2 = 160;
+                else if (playerTournamentCounts.Where(x => x["_id"].AsString == player2["_id"].AsString).Count() < 30) K2 = 160;
 
                 // Sets are worth less rating the more sets people have played
                 var frequencyBias = GetFrequencyBias(player1, player2, setsToProcess);
@@ -240,7 +235,7 @@ namespace Elo_Calculator
                 int player2Rating = player2["Elo"].AsInt32 + player2RatingChange;
 
                 // Update ratings
-                var update = Builders<BsonDocument>.Update
+                update = Builders<BsonDocument>.Update
                     .Set(p => p["Elo"], player1Rating);
                 _players.UpdateOne(x => x["_id"] == player1["_id"], update);
 
@@ -269,7 +264,7 @@ namespace Elo_Calculator
             
             players.ForEach((player) =>
             {
-                var tournamentFilter = Builders<BsonDocument>.Filter.Regex("Events.Sets.Players.GamerTag", new BsonRegularExpression("^" + Regex.Escape(player["GamerTag"].AsString) + "$", "i"));
+                var tournamentFilter = Builders<BsonDocument>.Filter.Eq("Events.Sets.Players._id", player["_id"]);
                 var tournamentCount = _tournaments.Find(tournamentFilter).CountDocuments();
                 player.Add("TournamentCount", (int)tournamentCount);
             });
@@ -343,7 +338,7 @@ namespace Elo_Calculator
 
         private static List<BsonDocument> GetRecentSets()
         {
-            List<BsonDocument> setsToProcess = _sets.Find(x => x["Stale"] == false).ToList();
+            List<BsonDocument> setsToProcess = _sets.Find(x => true).ToList();
             setsToProcess.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
             setsToProcess.ForEach(x => x.Add("Processed", false));
 
