@@ -118,8 +118,17 @@ namespace Elo_Calculator
                 }
                 else
                 {
-                    player1SetCount = int.Parse(player1SetCountString);
-                    player2SetCount = int.Parse(player2SetCountString);
+                    try
+                    {
+                        player1SetCount = int.Parse(player1SetCountString);
+                        player2SetCount = int.Parse(player2SetCountString);
+                    }
+                    catch(InvalidCastException e)
+                    {
+                        Console.WriteLine($"Error parsing DisplayScore for set {set.GetValue("_id")}. Skipping Elo calculation for set.");
+                        Console.WriteLine($"Exception Details: {e.Message}");
+                        continue;
+                    }
                 }
 
                 int setType = (player1SetCount == 3 || player2SetCount == 3) ? 5 : 3;
