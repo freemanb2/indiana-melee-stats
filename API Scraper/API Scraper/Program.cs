@@ -54,7 +54,7 @@ namespace API_Scraper
             var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
             TournamentHandler _consumer = new TournamentHandler(client);
-            List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 80);
+            List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 40);
 
             ParseTournaments(validTournaments);
         }

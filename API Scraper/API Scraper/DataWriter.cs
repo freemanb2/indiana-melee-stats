@@ -93,7 +93,11 @@ namespace API_Scraper
 
         public BsonDocument WritePlayer(Player _player)
         {
-            if (_validator.DocumentExists(_players, _player.Id)) return null;
+            if (_validator.DocumentExists(_players, _player.Id))
+            {
+                UpdateGamerTag(_player);
+                return null;
+            }
 
             var playerDocument = CreatePlayerDocument(_player);
             if(!_validator.DocumentExists(_players, playerDocument["_id"].ToString())){
@@ -223,6 +227,10 @@ namespace API_Scraper
             }
             if (existingPlayer != null)
             {
+                if (existingPlayer["GamerTag"].AsString != player.GamerTag)
+                {
+                    UpdateGamerTag(player, existingPlayer);
+                }
                 return existingPlayer.ToBsonDocument();
             }
 
@@ -233,6 +241,30 @@ namespace API_Scraper
                 {"Region", player.Region },
                 {"MainCharacter", player.MainCharacter }
             };
+        }
+
+        private void UpdateGamerTag(Player ingestedPlayer, BsonDocument existingPlayer = null)
+        {
+            if (existingPlayer == null)
+            {
+                var playerFilter = Builders<BsonDocument>.Filter.Eq("_id", ingestedPlayer.Id);
+                existingPlayer = _players.Find(playerFilter).Single().AsBsonDocument;
+                if (existingPlayer.GetValue("GamerTag").AsString == ingestedPlayer.GamerTag) return;
+            }
+
+            var setFilter = Builders<BsonDocument>.Filter.Eq("Players._id", existingPlayer.GetValue("_id"));
+            var setsPlayed = _sets.Find(setFilter).ToList();
+
+            setsPlayed.Sort((x, y) => x["CompletedAt"].CompareTo(y["CompletedAt"]));
+
+            var mostRecentSet = setsPlayed[0];
+            var setPlayers = mostRecentSet["Players"];
+            var mostRecentGamerTag = setPlayers.AsBsonArray.ToList().Find(x => x.AsBsonDocument.GetValue("_id") == existingPlayer.GetValue("_id")).AsBsonDocument.GetValue("GamerTag").AsString;
+            if (mostRecentGamerTag != existingPlayer.GetValue("GamerTag").AsString)
+            {
+                var updatePlayerFilter = Builders<BsonDocument>.Update.Set("GamerTag", mostRecentGamerTag);
+                _players.UpdateOne(x => x.GetValue("_id") == existingPlayer.GetValue("_id"), updatePlayerFilter);
+            }
         }
         #endregion
     }
