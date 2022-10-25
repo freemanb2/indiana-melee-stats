@@ -9,7 +9,7 @@ import { sortBy, forEach } from "lodash";
 
 export const playersRouter = express.Router();
 
-const minimumTournamentsAttended = 10;
+const minimumTournamentsAttended = 6;
 
 playersRouter.use(express.json());
 
@@ -25,7 +25,7 @@ playersRouter.get("/", async (req: Request, res: Response) => {
 
 playersRouter.get("/rankings", async (req: Request, res: Response) => {
     try {
-        const query = { Elo: { $gte: 1000 } };
+        const query = { Elo: { $gte: 0 } };
         const players = (await collections.players.find(query).toArray()) as unknown as Player[];
 
         var staleDate = new Date();

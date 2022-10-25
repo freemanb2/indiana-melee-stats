@@ -87,11 +87,11 @@ namespace Elo_Calculator
                 var minimumTournamentAttendance = 6;
 
                 // Do not count elo changes for sets against low activity (usually out of state) players
-                if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
-                    continue;
+                //if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
+                //    continue;
 
-                if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).Single().GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
-                    continue;
+                //if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
+                //    continue;
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
 

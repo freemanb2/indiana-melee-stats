@@ -26,21 +26,23 @@ namespace API_Scraper
         }
 
         #region public methods
-        public void WriteTournament(Tournament _tournament) {
-            if (_validator.DocumentExists(_tournaments, _tournament.Id)) return;
+        public BsonDocument WriteTournament(Tournament _tournament) {
+            if (_validator.DocumentExists(_tournaments, _tournament.Id)) return null;
 
             var tournamentDocument = CreateTournamentDocument(_tournament);
             try
             {
                 _tournaments.InsertOne(tournamentDocument);
+                return tournamentDocument;
             }
             catch (System.Exception e)
             {
                 System.Console.WriteLine($"Exception while writing Tournament with id {_tournament.Id} and name {_tournament.TournamentName}: ", e.Message);
+                return null;
             }
         }
 
-        public void WriteInvalidTournament(Tournament _tournament)
+        public BsonDocument WriteInvalidTournament(Tournament _tournament)
         {
             var tournamentDocument = new BsonDocument
             {
@@ -52,41 +54,46 @@ namespace API_Scraper
             };
 
             _tournaments.InsertOne(tournamentDocument);
+            return tournamentDocument;
         }
 
-        public void WriteEvent(Event _event)
+        public BsonDocument WriteEvent(Event _event)
         {
-            if (_validator.DocumentExists(_events, _event.Id)) return;
+            if (_validator.DocumentExists(_events, _event.Id)) return null;
 
             var eventDocument = CreateEventDocument(_event);
             try
             {
                 _events.InsertOne(eventDocument);
+                return eventDocument;
             }
             catch (System.Exception e)
             {
                 System.Console.WriteLine($"Exception while writing Event with id {_event.Id} and name {_event.EventName}: ", e.Message);
+                return null;
             }
         }
 
-        public void WriteSet(Set _set)
+        public BsonDocument WriteSet(Set _set)
         {
-            if (_validator.DocumentExists(_sets, _set.Id)) return;
+            if (_validator.DocumentExists(_sets, _set.Id)) return null;
 
             var setDocument = CreateSetDocument(_set);
             try
             {
                 _sets.InsertOne(setDocument);
+                return setDocument;
             }
             catch (System.Exception e)
             {
                 System.Console.WriteLine($"Exception while writing Set with id {_set.Id}: ", e.Message);
+                return null;
             }
         }
 
-        public void WritePlayer(Player _player)
+        public BsonDocument WritePlayer(Player _player)
         {
-            if (_validator.DocumentExists(_players, _player.Id)) return;
+            if (_validator.DocumentExists(_players, _player.Id)) return null;
 
             var playerDocument = CreatePlayerDocument(_player);
             if(!_validator.DocumentExists(_players, playerDocument["_id"].ToString())){
@@ -97,8 +104,10 @@ namespace API_Scraper
                 catch (System.Exception e)
                 {
                     System.Console.WriteLine($"Exception while writing Player with id {playerDocument["_id"].ToString()} and gamerTag {playerDocument["GamerTag"].ToString()}: ", e.Message);
+                    return null;
                 }
             }
+            return playerDocument;
         }
         #endregion
 
