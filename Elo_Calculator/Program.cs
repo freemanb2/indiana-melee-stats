@@ -123,9 +123,9 @@ namespace Elo_Calculator
                         player1SetCount = int.Parse(player1SetCountString);
                         player2SetCount = int.Parse(player2SetCountString);
                     }
-                    catch(InvalidCastException e)
+                    catch(Exception e)
                     {
-                        Console.WriteLine($"Error parsing DisplayScore for set {set.GetValue("_id")}. Skipping Elo calculation for set.");
+                        Console.WriteLine($"Error parsing DisplayScore for set {set.GetValue("_id")} with DisplayScore {set.GetValue("DisplayScore")}. Skipping Elo calculation for set.");
                         Console.WriteLine($"Exception Details: {e.Message}");
                         continue;
                     }
@@ -283,7 +283,7 @@ namespace Elo_Calculator
 
         private static int GetEntrantsInSetTournament(BsonDocument set)
         {
-            var eventFilter = Builders<BsonDocument>.Filter.Regex("Sets._id", set["_id"].AsString);
+            var eventFilter = Builders<BsonDocument>.Filter.Eq("Sets._id", set["_id"].AsString);
             var _event = _events.Find(eventFilter).Single();
             List<BsonDocument> players = new List<BsonDocument>();
 

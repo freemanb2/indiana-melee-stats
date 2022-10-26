@@ -46,15 +46,16 @@ namespace API_Scraper
             MongoClient dbClient = new MongoClient(config["MONGODB_PATH"]);
             _db = dbClient.GetDatabase("IndianaMeleeStatsDB");
 
-            validator = new DataValidator();
-            writer = new DataWriter(_db);
-        }
-
-        public async static Task ScrapeStartGGAPI(){
             var client = new GraphQLHttpClient(config["GraphQLURI"], new NewtonsoftJsonSerializer());
             client.HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config["STARTGG_API_KEY"]);
             TournamentHandler _consumer = new TournamentHandler(client);
-            List<Tournament> validTournaments = await validator.GetValidTournaments(_db, _consumer, numTournamentsToRecord: 40);
+
+            validator = new DataValidator(_consumer, _db);
+            writer = new DataWriter(_consumer, _db);
+        }
+
+        public async static Task ScrapeStartGGAPI(){
+            List<Tournament> validTournaments = await validator.GetValidTournaments(numTournamentsToRecord: 20, numOnlineTournamentsToRecord: 20);
 
             ParseTournaments(validTournaments);
         }

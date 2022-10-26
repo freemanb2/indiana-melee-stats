@@ -5,15 +5,25 @@ using API_Scraper.Models;
 using MongoDB.Bson;
 using System.Threading.Tasks;
 using System;
+using System.Text.RegularExpressions;
 
 namespace API_Scraper
 {
     public class DataValidator
     {
-        public async Task<List<Tournament>> GetValidTournaments(IMongoDatabase _db, TournamentHandler _consumer, int numTournamentsToRecord)
+        private TournamentHandler _consumer;
+        private IMongoDatabase _db;
+
+        public DataValidator(TournamentHandler _consumer, IMongoDatabase _db)
+        {
+            this._consumer = _consumer;
+            this._db = _db;
+        }
+
+        public async Task<List<Tournament>> GetValidTournaments(int numTournamentsToRecord, int numOnlineTournamentsToRecord)
         {
             var _tournaments = _db.GetCollection<BsonDocument>("Tournaments");
-            var writer = new DataWriter(_db);
+            var writer = new DataWriter(_consumer, _db);
 
             List<string> recentTournamentIds = await _consumer.GetRecentIndianaTournamentIds(500);
 
@@ -40,6 +50,30 @@ namespace API_Scraper
                 if (numTournamentsRecorded == numTournamentsToRecord) break;
             }
 
+            var validOnlineTournaments = await GetValidOnlineTournaments();
+            recentTournamentIds = await _consumer.GetRecentIndianaOnlineTournamentIds(validOnlineTournaments);
+            numTournamentsRecorded = 0;
+
+            foreach (var tournamentId in recentTournamentIds)
+            {
+                if (!DocumentExists(_tournaments, tournamentId))
+                {
+                    API.Tournament results = await _consumer.GetSpecificTournamentResults(tournamentId: tournamentId);
+                    Tournament tournament = new Tournament(results);
+                    if (IsValidTournament(tournament))
+                    {
+                        validTournaments.Add(tournament);
+                        numTournamentsRecorded++;
+                    }
+                    else
+                    {
+                        writer.WriteInvalidTournament(tournament);
+                    }
+                }
+
+                if (numTournamentsRecorded == numOnlineTournamentsToRecord) break;
+            }
+
             return validTournaments;
         }
 
@@ -60,6 +94,29 @@ namespace API_Scraper
         public bool DocumentExists(IMongoCollection<BsonDocument> collection, string id)
         {
             return collection.Find(x => x["_id"] == id).CountDocuments() > 0;
+        }
+
+        private async Task<List<Tuple<string,string>>> GetValidOnlineTournaments()
+        {
+            var validOnlineTournaments = new List<Tuple<string, string>>
+            {
+                new Tuple<string,string>(await GetUserIdOfPlayer("Acid"), "State of Affairs"),
+                new Tuple<string,string>(await GetUserIdOfPlayer("dalbull"), "Crossroads"),
+                new Tuple<string,string>(await GetUserIdOfPlayer("Blue"), "Crossroads")
+            };
+
+            return validOnlineTournaments;
+        }
+
+        private async Task<string> GetUserIdOfPlayer(string gamerTag)
+        {
+            var _players = _db.GetCollection<BsonDocument>("Players");
+
+            var filter = Builders<BsonDocument>.Filter.Regex("GamerTag", new BsonRegularExpression("^" + Regex.Escape(gamerTag) + "$", "i"));
+            var playerId = _players.Find(filter).Single().GetValue("_id").AsString;
+            var userId = await _consumer.GetUserIdOfPlayer(playerId);
+
+            return userId;
         }
 
         #region document validation

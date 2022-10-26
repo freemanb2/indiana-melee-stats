@@ -16,13 +16,13 @@ namespace API_Scraper
         private readonly IMongoCollection<BsonDocument> _players;
         private readonly DataValidator _validator;
 
-        public DataWriter(IMongoDatabase db)
+        public DataWriter(TournamentHandler consumer, IMongoDatabase db)
         {
             _tournaments = db.GetCollection<BsonDocument>("Tournaments");
             _events = db.GetCollection<BsonDocument>("Events");
             _sets = db.GetCollection<BsonDocument>("Sets");
             _players = db.GetCollection<BsonDocument>("Players");
-            _validator = new DataValidator();
+            _validator = new DataValidator(consumer, db);
         }
 
         #region public methods

@@ -4,6 +4,7 @@ using GraphQL.Client.Abstractions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace API_Scraper
 {
@@ -90,6 +91,56 @@ namespace API_Scraper
             return tournamentIds;
         }
 
+        public async Task<List<string>> GetRecentIndianaOnlineTournamentIds(List<Tuple<string, string>> validOnlineTournaments)
+        {
+            var tournamentIds = new List<string>();
+
+            foreach (var onlineTournament in validOnlineTournaments)
+            {
+                var query = new GraphQLRequest
+                {
+                    Query = @"
+                    query RecentIndianaOnlineTournamentIds {
+                      tournaments(query: { filter: { videogameIds: [1], past: true, published: true, publiclySearchable: true, hasOnlineEvents: true, ownerId: " + onlineTournament.Item1 + @", name: """+ onlineTournament.Item2 + @""" }, page: 1, perPage: 500 }){
+                        nodes {
+                          id
+                        }
+                      }
+                    }
+                "
+                };
+                GraphQLResponse<GetRecentIndianaTournamentIdsResponse> response = await _client.SendQueryAsync<GetRecentIndianaTournamentIdsResponse>(query);
+
+                var tournamentResults = response.Data.Tournaments.Nodes;
+
+                foreach (var tournament in tournamentResults)
+                {
+                    tournamentIds.Add(tournament.Id.ToString());
+                }
+            }
+
+            return tournamentIds;
+        }
+
+        public async Task<string> GetUserIdOfPlayer(string playerId)
+        {
+            var query = new GraphQLRequest
+            {
+                Query = @"
+                    query GetUser {
+                      player(id: " + playerId + @") {
+                        user{
+                          id
+                        }
+                      }
+                    }
+                "
+            };
+            GraphQLResponse<GetUserIdOfPlayerResponse> response = await _client.SendQueryAsync<GetUserIdOfPlayerResponse>(query);
+
+            return response.Data.Player.User.Id;
+        }
+
         private string GetSpecificTournamentQueryString(string tournamentId, int page, int limit)
         {
             return @"
@@ -143,6 +194,11 @@ namespace API_Scraper
     public class GetSpecificIndianaTournamentResultsResponse
     {
         public Tournament Tournament { get; set; }
+    }
+
+    public class GetUserIdOfPlayerResponse
+    {
+        public Player Player { get; set; }
     }
 
 }
