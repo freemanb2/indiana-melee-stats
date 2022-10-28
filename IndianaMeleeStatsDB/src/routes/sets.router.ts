@@ -20,7 +20,7 @@ setsRouter.get("/:gamerTag", async (req: Request, res: Response) => {
         var sets = (await collections.sets.find(setsQuery).toArray()) as unknown as Set[];
 
         const tournamentsQuery = { "Events.Sets.Players.GamerTag": { $regex: new RegExp(`^${gamerTag}$`), $options: "i" } };
-        var tournaments = (await collections.tournaments.find(tournamentsQuery).toArray()) as unknown as Tournament[];
+        var tournaments = (await collections.tournaments.find(tournamentsQuery).limit(20).sort({ "Date": -1 }).toArray()) as unknown as Tournament[];
 
         var setsByTournament = new Array;
         
@@ -33,17 +33,22 @@ setsRouter.get("/:gamerTag", async (req: Request, res: Response) => {
             });
 
             var playerSetsInTournament = new Array;
+            var participatedInTournament = false;
             forEach(sets, (set) => {
                 if(allTournamentSets.includes(set._id)){
+                    participatedInTournament = true;
                     playerSetsInTournament.push(set);
                 }
             });
 
-            setsByTournament.push({
-                tournamentId: tournament._id,
-                tournamentName: tournament.TournamentName,
-                tournamentSets: playerSetsInTournament
-            })
+            if(participatedInTournament){
+                setsByTournament.push({
+                    tournamentId: tournament._id,
+                    tournamentName: tournament.TournamentName,
+                    tournamentLink: tournament.Link,
+                    tournamentSets: playerSetsInTournament
+                });
+            }
         });
 
         if (setsByTournament) {

@@ -10,7 +10,8 @@ import { BehaviorSubject } from 'rxjs';
 export class PlayerComponent implements OnInit {
   public tournaments = Array<any>();
   public headToHeads = Array<any>();
-  public loading = false;
+  public loadingResults = false;
+  public loadingHeadToHeads = false;
 
   constructor(private http: HttpClient) { }
 
@@ -20,10 +21,11 @@ export class PlayerComponent implements OnInit {
   getSets(gamerTag: any): void {
     this.tournaments = Array<any>();
     this.headToHeads = Array<any>();
-    this.loading = true;
+    this.loadingResults = true;
     var apiRoute = "http://localhost:8080/sets/" + gamerTag;
     this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
       this.tournaments = results;
+      this.loadingResults = false;
     });
 
     this.getHeadToHeads(gamerTag);
@@ -31,9 +33,10 @@ export class PlayerComponent implements OnInit {
 
   getHeadToHeads(gamerTag: any): void {
     var apiRoute = "http://localhost:8080/players/" + gamerTag + "/headToHeads";
+    this.loadingHeadToHeads = true;
     this.http.get<any>(apiRoute).subscribe((results: Array<any>) => {
       this.headToHeads = results;
+      this.loadingHeadToHeads = false;
     });
-    this.loading = false;
   }
 }

@@ -8,12 +8,12 @@
     <hr>
     <div class="row">
         <div class="col">
-            <h3>Tournament Results</h3>
-            <div *ngIf="loading" class="loading-icon">
+            <h3>Recent Tournament Results</h3>
+            <div *ngIf="loadingResults" class="loading-icon">
                 <img src="../../assets/spinning-loading.gif" />
             </div>
             <div *ngFor="let tournament of tournaments">
-                <h4>{{tournament.tournamentName}}</h4>
+                <h4><a href="{{tournament.tournamentLink}}" target="_blank">{{tournament.tournamentName}}</a></h4>
                 <div *ngFor="let set of tournament.tournamentSets">
                     {{set.DisplayScore}}
                 </div>
@@ -22,7 +22,7 @@
         </div>
         <div class="col">
             <h3>Head-To-Heads</h3>
-            <div *ngIf="loading" class="loading-icon">
+            <div *ngIf="loadingHeadToHeads" class="loading-icon">
                 <img src="../../assets/spinning-loading.gif" />
             </div>
             <div *ngFor="let matchup of headToHeads">

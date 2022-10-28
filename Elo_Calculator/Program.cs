@@ -52,6 +52,7 @@ namespace Elo_Calculator
         private static void UpdateRatings(List<BsonDocument> setsToProcess)
         {
             var playerTournamentCounts = GetPlayerTournamentCounts();
+            var unstaleSets = setsToProcess.FindAll(x => x["CompletedAt"] > DateTime.Now.AddYears(-1));
 
             foreach (var set in setsToProcess)
             {
@@ -87,11 +88,11 @@ namespace Elo_Calculator
                 var minimumTournamentAttendance = 6;
 
                 // Do not count elo changes for sets against low activity (usually out of state) players
-                //if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
-                //    continue;
+                if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance)
+                    continue;
 
-                //if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance) 
-                //    continue;
+                if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance)
+                    continue;
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
 
@@ -217,7 +218,7 @@ namespace Elo_Calculator
                 else if (playerTournamentCounts.Where(x => x["_id"].AsString == player2["_id"].AsString).Count() < 30) K2 = 160;
 
                 // Sets are worth less rating the more sets people have played
-                var frequencyBias = GetFrequencyBias(player1, player2, setsToProcess);
+                var frequencyBias = GetFrequencyBias(player1, player2, unstaleSets);
 
                 // Tournaments are worth more rating based on number of attendants
                 var entrantScale = 1.0;
@@ -253,14 +254,15 @@ namespace Elo_Calculator
                 _players.UpdateOne(x => x["_id"] == player2["_id"], update);
 
                 set.Set("Processed", true);
+                unstaleSets.Find(x => x["_id"] == set["_id"])?.AsBsonDocument.Set("Processed", true);
             }
         }
 
-        private static double GetFrequencyBias(BsonDocument player1, BsonDocument player2, List<BsonDocument> setsToProcess)
+        private static double GetFrequencyBias(BsonDocument player1, BsonDocument player2, List<BsonDocument> unstaleSets)
         {
             double bias;
 
-            var numSetsPlayed = setsToProcess.FindAll(x => x["Processed"] != false && x["Players"].AsBsonArray.Any(y => y["_id"] == player1["_id"]) && x["Players"].AsBsonArray.Any(y => y["_id"] == player2["_id"])).Count() + 1;
+            var numSetsPlayed = unstaleSets.FindAll(x => x["Processed"] != false && x["Players"].AsBsonArray.Any(y => y["_id"] == player1["_id"]) && x["Players"].AsBsonArray.Any(y => y["_id"] == player2["_id"])).Count() + 1;
 
             bias = 1.0 / (numSetsPlayed);
 
