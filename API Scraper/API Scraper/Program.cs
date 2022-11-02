@@ -55,7 +55,24 @@ namespace API_Scraper
         }
 
         public async static Task ScrapeStartGGAPI(){
-            List<Tournament> validTournaments = await validator.GetValidTournaments(numTournamentsToRecord: 20, numOnlineTournamentsToRecord: 20);
+            int numLoops = 5;
+
+            List<Tournament> validTournaments = new List<Tournament>();
+
+            for (var i = 1; i <= numLoops; i++)
+            {
+                System.Console.WriteLine($"Fetching tournaments ({i} of {numLoops})");
+                validTournaments.AddRange(await validator.GetValidTournaments(numTournamentsToRecord: 20, numOnlineTournamentsToRecord: 20));
+                if (i < numLoops)
+                {
+                    for (var j = 30; j >= 0; j--)
+                    {
+                        System.Console.Write($"\rWaiting {j} seconds before fetching more tournaments...");
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                    System.Console.WriteLine("");
+                }
+            }
 
             ParseTournaments(validTournaments);
         }
@@ -95,7 +112,7 @@ namespace API_Scraper
                                 {
                                     if (validator.IsValidPlayer(player))
                                     {
-                                        writer.WritePlayer(player);
+                                        writer.WritePlayer(player, tournament.Id);
                                     }
                                 }
                             }

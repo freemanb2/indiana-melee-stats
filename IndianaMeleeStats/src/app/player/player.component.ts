@@ -27,7 +27,7 @@ export class PlayerComponent implements OnInit {
       this.tournaments = results;
       this.loadingResults = false;
     });
-
+    
     this.getHeadToHeads(gamerTag);
   }
 

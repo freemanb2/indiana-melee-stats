@@ -91,11 +91,12 @@ namespace API_Scraper
             }
         }
 
-        public BsonDocument WritePlayer(Player _player)
+        public BsonDocument WritePlayer(Player _player, string tournamentId = null)
         {
             if (_validator.DocumentExists(_players, _player.Id))
             {
                 UpdateGamerTag(_player);
+                InsertTournamentAttended(_player, tournamentId);
                 return null;
             }
 
@@ -239,7 +240,8 @@ namespace API_Scraper
                 {"Elo", player.Elo },
                 {"GamerTag", player.GamerTag },
                 {"Region", player.Region },
-                {"MainCharacter", player.MainCharacter }
+                {"MainCharacter", player.MainCharacter },
+                {"TournamentsAttended", new BsonArray() }
             };
         }
 
@@ -264,6 +266,28 @@ namespace API_Scraper
             {
                 var updatePlayerFilter = Builders<BsonDocument>.Update.Set("GamerTag", mostRecentGamerTag);
                 _players.UpdateOne(x => x.GetValue("_id") == existingPlayer.GetValue("_id"), updatePlayerFilter);
+            }
+        }
+
+        private void InsertTournamentAttended(Player player, string? tournamentId)
+        {
+            if (tournamentId == null) return;
+
+            var playerFilter = Builders<BsonDocument>.Filter.Eq("_id", player.Id);
+            var playerDocument = _players.Find(playerFilter).Single().AsBsonDocument;
+
+            List<BsonValue> tournamentsAttended = playerDocument.GetValue("TournamentsAttended").AsBsonArray.ToList();
+            if (tournamentsAttended.Contains(tournamentId)) return;
+
+            tournamentsAttended.Add(tournamentId);
+            var update = Builders<BsonDocument>.Update.Set("TournamentsAttended", tournamentsAttended);
+            try
+            {
+                _players.UpdateOne(x => x["_id"] == player.Id, update);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
         #endregion

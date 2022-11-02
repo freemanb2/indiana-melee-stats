@@ -1,7 +1,7 @@
 {
     "name": "mongodb-typescript-example",
     "version": "1.0.0",
-    "description": "Welcome to this MongoDB and TypeScript sample project. The aim of this project is to give you a working example of how you can use the power of MongoDB Atlas with TypeScript and Express to create modern web applications.",
+    "description": "ExpressJS backend for pulling data from MongoDB instance into Angular frontend",
     "main": "dist/index.js",
     "keywords": [
         "mongodb",
@@ -9,7 +9,7 @@
         "express",
         "atlas"
     ],
-    "author": "Luce Carter",
+    "author": "Brandon Freeman",
     "license": "Apache 2.0",
     "scripts": {
         "build": "tsc",
@@ -20,7 +20,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mongodb-developer/mongodb-typescript-example.git"
+        "url": "git+https://github.com/freemanb2/indiana-melee-stats.git"
     },
     "dependencies": {
         "@types/lodash": "^4.14.186",

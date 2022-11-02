@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson;
+using System.Collections.Generic;
 
 namespace API_Scraper.Models
 {
@@ -8,6 +9,7 @@ namespace API_Scraper.Models
         public string GamerTag { get; set; }
         public string Region { get; set; }
         public string MainCharacter { get; set; }
+        public List<string> TournamentsAttended { get; set; }
 
         public Player(string id, string gamerTag, int elo = 1200, string region = "", string mainCharacter = "")
         {
@@ -16,6 +18,7 @@ namespace API_Scraper.Models
             GamerTag = gamerTag;
             Region = region;
             MainCharacter = mainCharacter;
+            TournamentsAttended = new List<string>();
         }
 
         public Player(BsonDocument player)
@@ -25,6 +28,12 @@ namespace API_Scraper.Models
             GamerTag = player.GetValue("GamerTag").ToString();
             Region = player.GetValue("Region").ToString();
             MainCharacter = player.GetValue("MainCharacter").ToString();
+
+            var documentTournamentsAttended = player.GetValue("TournamentsAttended").AsBsonArray;
+            foreach (var tournament in documentTournamentsAttended)
+            {
+                TournamentsAttended.Add(tournament.AsString);
+            }
         }
     }
 }
