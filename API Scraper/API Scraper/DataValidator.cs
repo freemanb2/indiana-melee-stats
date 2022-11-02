@@ -100,9 +100,9 @@ namespace API_Scraper
         {
             var validOnlineTournaments = new List<Tuple<string, string>>
             {
-                new Tuple<string,string>(await GetUserIdOfPlayer("Acid"), "State of Affairs"),
-                new Tuple<string,string>(await GetUserIdOfPlayer("dalbull"), "Crossroads"),
-                new Tuple<string,string>(await GetUserIdOfPlayer("Blue"), "Crossroads")
+                new Tuple<string,string>("282411", "State of Affairs"), //Acid
+                new Tuple<string,string>("370809", "Crossroads"), //dalbull
+                new Tuple<string,string>("429020", "Crossroads") //Blue
             };
 
             return validOnlineTournaments;

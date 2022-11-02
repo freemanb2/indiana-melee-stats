@@ -30,6 +30,8 @@ namespace API_Scraper
 
             var task = ScrapeStartGGAPI();
             task.Wait();
+
+            System.Console.WriteLine("Done");
         }
 
         private static void InitializeDatabase()
@@ -55,14 +57,15 @@ namespace API_Scraper
         }
 
         public async static Task ScrapeStartGGAPI(){
-            int numLoops = 5;
+            int numLoops = 10;
 
             List<Tournament> validTournaments = new List<Tournament>();
 
             for (var i = 1; i <= numLoops; i++)
             {
                 System.Console.WriteLine($"Fetching tournaments ({i} of {numLoops})");
-                validTournaments.AddRange(await validator.GetValidTournaments(numTournamentsToRecord: 20, numOnlineTournamentsToRecord: 20));
+                validTournaments = await validator.GetValidTournaments(numTournamentsToRecord: 10, numOnlineTournamentsToRecord: 10);
+                ParseTournaments(validTournaments);
                 if (i < numLoops)
                 {
                     for (var j = 30; j >= 0; j--)
@@ -74,7 +77,17 @@ namespace API_Scraper
                 }
             }
 
-            ParseTournaments(validTournaments);
+            //Recalculate Elo ratings
+            Console.WriteLine("Calculating updated Elo ratings...");
+            try
+            {
+                //Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess); --Only works correctly when the newly ingested sets happened after all existing sets since sets have to be processed in chronological order
+                Elo_Calculator.Program.Main();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         // Look for incomplete tournaments that happened in the last 30 days and query for updates that may have occurred.
@@ -120,21 +133,6 @@ namespace API_Scraper
                     }
                 }
             }
-            //Recalculate Elo ratings
-            if (setsToProcess.Count > 0)
-            {
-                Console.WriteLine("Calculating updated Elo ratings...");
-                try
-                {
-                    //Elo_Calculator.Program.UpdateRatingsWithSpecificSets(setsToProcess); --Only works correctly when the newly ingested sets happened after all existing sets since sets have to be processed in chronological order
-                    Elo_Calculator.Program.Main();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            System.Console.WriteLine("Done");
         }
     }
 }
