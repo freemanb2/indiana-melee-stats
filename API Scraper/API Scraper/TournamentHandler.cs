@@ -155,6 +155,7 @@ namespace API_Scraper
                             name
                             type
                             state
+                            numEntrants
                             tournament {
                                 id
                             }

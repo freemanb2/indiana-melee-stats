@@ -112,6 +112,8 @@ namespace API_Scraper
                     return null;
                 }
             }
+
+            InsertTournamentAttended(new Player(playerDocument), tournamentId);
             return playerDocument;
         }
         #endregion
@@ -146,6 +148,7 @@ namespace API_Scraper
                 {"EventName", _event.EventName },
                 {"EventType", _event.EventType },
                 {"State", _event.State },
+                {"NumEntrants", _event.NumEntrants },
                 {"Sets", CreateEventSets(_event.Sets) }
             };
         }

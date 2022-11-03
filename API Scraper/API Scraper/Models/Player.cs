@@ -28,6 +28,7 @@ namespace API_Scraper.Models
             GamerTag = player.GetValue("GamerTag").ToString();
             Region = player.GetValue("Region").ToString();
             MainCharacter = player.GetValue("MainCharacter").ToString();
+            TournamentsAttended = new List<string>();
 
             var documentTournamentsAttended = player.GetValue("TournamentsAttended").AsBsonArray;
             foreach (var tournament in documentTournamentsAttended)

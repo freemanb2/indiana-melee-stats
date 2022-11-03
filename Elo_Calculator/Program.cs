@@ -51,11 +51,13 @@ namespace Elo_Calculator
 
         private static void UpdateRatings(List<BsonDocument> setsToProcess)
         {
-            var playerTournamentCounts = GetPlayerTournamentCounts();
             var unstaleSets = setsToProcess.FindAll(x => x["CompletedAt"] > DateTime.Now.AddYears(-1));
+            int setsProcessed = 0;
 
             foreach (var set in setsToProcess)
             {
+                setsProcessed++;
+                Console.Write($"\r{setsProcessed * 100 / setsToProcess.Count()}%");
                 var entrantCount = GetEntrantsInSetTournament(set);
                 if (entrantCount < 8)
                     continue;
@@ -88,10 +90,10 @@ namespace Elo_Calculator
                 var minimumTournamentAttendance = 6;
 
                 // Do not count elo changes for sets against low activity (usually out of state) players
-                if (playerTournamentCounts.Where(x => x["_id"].AsString == player1Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance)
+                if (player1["TournamentsAttended"].AsBsonArray.Count() < minimumTournamentAttendance)
                     continue;
 
-                if (playerTournamentCounts.Where(x => x["_id"].AsString == player2Id).SingleOrDefault()?.GetValue("TournamentCount").AsInt32 < minimumTournamentAttendance)
+                if (player2["TournamentsAttended"].AsBsonArray.Count() < minimumTournamentAttendance)
                     continue;
 
                 int D = Math.Abs(player1.GetValue("Elo").AsInt32 - player2.GetValue("Elo").AsInt32);
@@ -211,11 +213,11 @@ namespace Elo_Calculator
                 // Determine scaling coefficient for each player
                 int K1 = 80;
                 if (player1["Elo"] >= 2400) K1 = 40;
-                else if (playerTournamentCounts.Where(x => x["_id"].AsString == player1["_id"].AsString).Count() < 30) K1 = 160;
+                else if (player1["TournamentsAttended"].AsBsonArray.Count() < 30) K1 = 160;
 
                 int K2 = 80;
                 if (player2["Elo"] >= 2400) K2 = 40;
-                else if (playerTournamentCounts.Where(x => x["_id"].AsString == player2["_id"].AsString).Count() < 30) K2 = 160;
+                else if (player2["TournamentsAttended"].AsBsonArray.Count() < 30) K2 = 160;
 
                 // Sets are worth less rating the more sets people have played
                 var frequencyBias = GetFrequencyBias(player1, player2, unstaleSets);
@@ -269,75 +271,12 @@ namespace Elo_Calculator
             return bias;
         }
 
-        private static List<BsonDocument> GetPlayerTournamentCounts()
-        {
-            List<BsonDocument> players = _players.Find(x => true).ToList();
-            
-            players.ForEach((player) =>
-            {
-                var tournamentFilter = Builders<BsonDocument>.Filter.Eq("Events.Sets.Players._id", player["_id"]);
-                var tournamentCount = _tournaments.Find(tournamentFilter).CountDocuments();
-                player.Add("TournamentCount", (int)tournamentCount);
-            });
-
-            return players;
-        }
-
         private static int GetEntrantsInSetTournament(BsonDocument set)
         {
             var eventFilter = Builders<BsonDocument>.Filter.Eq("Sets._id", set["_id"].AsString);
             var _event = _events.Find(eventFilter).Single();
-            List<BsonDocument> players = new List<BsonDocument>();
 
-            _event["Sets"].AsBsonArray.ToList().ForEach(set =>
-            {
-                if (players.Find(x => x["GamerTag"] == set["Players"][0]["GamerTag"]) == null)
-                {
-                    players.Add(set["Players"][0].AsBsonDocument);
-                }
-
-                if (players.Find(x => x["GamerTag"] == set["Players"][1]["GamerTag"]) == null)
-                {
-                    players.Add(set["Players"][1].AsBsonDocument);
-                }
-            });
-
-            var entrantCount = players.Count();
-
-            return entrantCount;
-        }
-
-        private static List<string> GetRegionalOpponents(BsonDocument player)
-        {
-            List<string> opponentTags = new List<string>();
-
-            var filter = Builders<BsonDocument>.Filter.Eq("Players.Gamertag", player["GamerTag"]);
-            var recentSets = _sets.Find(filter).SortByDescending(x => x["CompletedAt"]).ToList();
-            var setCounts = new List<Tuple<string, int>>();
-            foreach (var set in recentSets)
-            {
-                var opponentTag = set["Players"].AsBsonArray.Where(x => x["GamerTag"] != player["GamerTag"]).First().AsBsonDocument["GamerTag"];
-                if (!setCounts.Any(x => x.Item1 == opponentTag.AsString))
-                {
-                    setCounts.Add(new Tuple<string, int>(opponentTag.AsString, 1));
-                }
-                else
-                {
-                    var index = setCounts.FindIndex(x => x.Item1 == opponentTag);
-                    setCounts[index] = new Tuple<string, int>(opponentTag.AsString, setCounts[index].Item2 + 1);
-                }
-            }
-
-            setCounts = setCounts.OrderByDescending(x => x.Item2).ToList();
-
-            foreach(var opponent in setCounts)
-            {
-                if (opponent.Item2 >= 5) opponentTags.Add(opponent.Item1);
-
-                if (opponentTags.Count() == 8) break;
-            }
-
-            return opponentTags;
+            return _event["NumEntrants"].AsInt32;
         }
 
         private static void ResetPlayerElos()

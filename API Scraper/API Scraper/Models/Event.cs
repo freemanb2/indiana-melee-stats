@@ -8,6 +8,7 @@ namespace API_Scraper.Models
         public string EventType { get; set; }
         public string EventName { get; set; }
         public string State { get; set; }
+        public int NumEntrants { get; set; }
         public List<Set> Sets { get; set; }
 
         public Event(API.Event API_Event)
@@ -16,6 +17,7 @@ namespace API_Scraper.Models
             EventType = API_Event.Type == 1 ? "Singles" : "Doubles";
             EventName = API_Event.Name;
             State = API_Event.State;
+            NumEntrants = API_Event.NumEntrants;
             Sets = new List<Set>();
 
             for (var i = 0; i < API_Event.Sets.Nodes.Count; i++)
@@ -30,6 +32,7 @@ namespace API_Scraper.Models
             EventType = _event.GetValue("EventType").ToString();
             EventName = _event.GetValue("EventName").ToString();
             State = _event.GetValue("State").ToString();
+            NumEntrants = _event.GetValue("NumEntrants").AsInt32;
             Sets = new List<Set>();
 
             var documentSets = _event.GetValue("Sets").AsBsonArray;

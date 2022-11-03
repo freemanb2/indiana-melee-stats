@@ -9,7 +9,7 @@ import { sortBy, forEach } from "lodash";
 
 export const playersRouter = express.Router();
 
-const minimumTournamentsAttended = 5;
+const minimumTournamentsAttended = 12;
 
 playersRouter.use(express.json());
 
@@ -32,8 +32,7 @@ playersRouter.get("/rankings", async (req: Request, res: Response) => {
         staleDate.setDate(staleDate.getDate() - 365);
         var playersWithSufficientSets = new Array<Player>();
         await Promise.all(players.map(async (player) => {
-            var tournamentCount = (await collections.tournaments.find({ "Events.Sets.Players.GamerTag": player.GamerTag }).toArray()).length;
-            if (tournamentCount >= minimumTournamentsAttended){
+            if (player.TournamentsAttended.length > minimumTournamentsAttended){
                 playersWithSufficientSets.push(player);
             }
         }));
