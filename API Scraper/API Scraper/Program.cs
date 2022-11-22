@@ -64,7 +64,7 @@ namespace API_Scraper
             for (var i = 1; i <= numLoops; i++)
             {
                 System.Console.WriteLine($"Fetching tournaments ({i} of {numLoops})");
-                validTournaments = await validator.GetValidTournaments(numTournamentsToRecord: 10, numOnlineTournamentsToRecord: 10);
+                validTournaments = await validator.GetValidTournaments(numTournamentsToRecord: 20, numOnlineTournamentsToRecord: 0);
                 ParseTournaments(validTournaments);
                 if (i < numLoops)
                 {

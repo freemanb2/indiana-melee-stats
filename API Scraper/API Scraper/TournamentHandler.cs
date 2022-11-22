@@ -20,7 +20,7 @@ namespace API_Scraper
         {
             Tournament tournament = new Tournament();
             int page = 1;
-            int limit = 30;
+            int limit = 25;
             GraphQLResponse<GetSpecificIndianaTournamentResultsResponse> response = await GetNextTournamentResultsPage(tournamentId, page++, limit);
             tournament = response.Data.Tournament;
             if (tournament.Events.Any(e => e.Sets.Nodes.Count == limit))

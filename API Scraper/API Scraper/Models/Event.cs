@@ -17,7 +17,7 @@ namespace API_Scraper.Models
             EventType = API_Event.Type == 1 ? "Singles" : "Doubles";
             EventName = API_Event.Name;
             State = API_Event.State;
-            NumEntrants = API_Event.NumEntrants;
+            NumEntrants = API_Event.NumEntrants ?? 0;
             Sets = new List<Set>();
 
             for (var i = 0; i < API_Event.Sets.Nodes.Count; i++)

@@ -6,7 +6,7 @@ namespace API_Scraper.API
         public string Name { get; set; }
         public int Type { get; set; }
         public string State { get; set; }
-        public int NumEntrants { get; set; }
+        public int? NumEntrants { get; set; }
         public Tournament Tournament { get; set; }
         public EntrantConnection Entrants { get; set; }
         public SetConnection Sets { get; set; }

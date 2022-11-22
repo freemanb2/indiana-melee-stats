@@ -9,7 +9,7 @@ import { sortBy, forEach } from "lodash";
 
 export const playersRouter = express.Router();
 
-const minimumTournamentsAttended = 12;
+const minimumTournamentsAttended = 8;
 
 playersRouter.use(express.json());
 
